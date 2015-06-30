@@ -17,7 +17,6 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
       $scope.$apply(function() {
         $scope.hits = data.hits;
       });
-      console.log($scope.hits);
     });
   }
 ]);
