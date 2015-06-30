@@ -1,0 +1,13 @@
+<div class="row collapse">
+  <div class="large-12 columns">
+    <hr>
+    <h3>Search results</h3>
+    <article data-ng-repeat="hit in hits">
+      <strong>{{ hit.title }}</strong>
+      <p>{{ hit.snippet }}</p>
+      <p><span>Level: </span>{{ hit.level }}</p>
+      <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
+      <hr>
+    </article>
+  </div>
+</div>

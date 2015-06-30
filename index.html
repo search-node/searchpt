@@ -42,53 +42,26 @@
     <div class="wrapper">
 
       <!-- Search box application -->
-      <form id="searchBoxApp">
-        <div class="row collapse" data-ng-controller="boxController">
-          <div class="small-10 columns">
-            <input type="text" placeholder="Søg, f.eks. musik, kursus">
+      <form id="searchBoxApp" data-ng-controller="boxController">
+        <span data-ng-include="template">
+          <div class="row collapse">
+            <div class="small-10 columns">
+              <input type="text" placeholder="Søg, f.eks. musik, kursus">
+            </div>
+            <div class="small-2 columns">
+              <a href="#" class="button postfix">Søg</a>
+            </div>
           </div>
-          <div class="small-2 columns">
-            <a href="#" class="button postfix">Søg</a>
-          </div>
-          <div class="large-6 columns">
-            <label><strong>Fag</strong></label>
-            <input id="checkbox1" type="checkbox"><label for="checkbox1">Dansk</label>
-            <input id="checkbox2" type="checkbox"><label for="checkbox2">Engelsk</label>
-            <input id="checkbox3" type="checkbox"><label for="checkbox3">Matematik</label>
-            <input id="checkbox4" type="checkbox"><label for="checkbox4">Naturfag</label>
-          </div>
-          <div class="large-6 columns">
-            <label><strong>Klassetrin</strong></label>
-            <input id="checkbox1" type="checkbox"><label for="checkbox1">1</label>
-            <input id="checkbox2" type="checkbox"><label for="checkbox2">2</label>
-            <input id="checkbox3" type="checkbox"><label for="checkbox3">3</label>
-            <input id="checkbox4" type="checkbox"><label for="checkbox4">4</label>
-          </div>
-        </div>
+        </span>
       </form>
 
-      <!-- Search result application -->
-      <form id="searchResultApp">
-        <div class="row collapse" data-ng-controller="resultController">
-          <div class="large-12 columns">
-            <hr>
-            <h3>Search results</h3>
-            <br>
-            <article>
-              <strong>Result</strong>
-              <p>This is the result text</p>
-              <span class="label">Meta data</span>
-              <span class="label">Meta data</span>
-            </article>
-            <hr>
-            <article>
-              <strong>Result</strong>
-              <p>This is the result text</p>
-              <span class="label">Meta data</span>
-              <span class="label">Meta data</span>
-            </article>
+       <!-- Search result application -->
+      <form id="searchResultApp"  data-ng-controller="resultController" >
+        <span data-ng-include="template">
+          <div class="row collapse">
+            No results.
           </div>
-        </div>
+        </span>
       </form>
 
     </div>

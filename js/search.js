@@ -1,12 +1,12 @@
 
 /**
  * @file
- * Defines the Angular JS application the run the kagami frontend.
+ * Defines the Angular JS application.
  */
 
 // Define the angular applications.
-var searchBoxApp = angular.module('searchBoxApp', ['communicationService']);
-var searchResultApp = angular.module('searchResultApp', ['communicationService']);
+var searchBoxApp = angular.module('searchBoxApp', ['communicationService', 'searchAppConfig']);
+var searchResultApp = angular.module('searchResultApp', ['communicationService', 'searchAppConfig']);
 
 /**
  * When the document is ready bootstrap the two applications.
