@@ -14,6 +14,50 @@ angular.module('searchAppConfig', [])
     },
     'provider': {
       'service': 'jsonProvider',
-      'data': '/search_data.json'
+      'data': '/search_data.json',
+      'filters': {
+        'tags': {
+          'name': 'Tags',
+          'items': [
+            {
+              'name': 'Services',
+              'value': 'services'
+            },
+            {
+              'name': 'Angular',
+              'value': 'angular'
+            },
+            {
+              'name': 'Javascript',
+              'value': 'javascript'
+            },
+            {
+              'name': 'Chrome',
+              'value': 'chrome'
+            }
+          ]
+        },
+        'levels':{
+          'name': 'Levels',
+          'items': [
+            {
+              'name': 'First',
+              'value': 1
+            },
+            {
+              'name': 'Second',
+              'value': 2
+            },
+            {
+              'name': 'Third',
+              'value': 3
+            },
+            {
+              'name': 'Fourth',
+              'value': 4
+            }
+          ]
+        }
+      }
     }
   });

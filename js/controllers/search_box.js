@@ -9,11 +9,24 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     // Set template to use.
     $scope.template = CONFIG.templates.box;
 
-    $scope.search = function search($query) {
-      // Build query based on selections.
-      var query = '';
+    // Init the query object.
+    $scope.query = {
+      'text': '',
+      'filters': {}
+    };
 
-      var hits = searchProxy.search($query);
+
+    // Check if filters are defined by the provider.
+    if (CONFIG.provider.hasOwnProperty('filters')) {
+      $scope.filters = CONFIG.provider.filters;
+    }
+
+    $scope.search = function search() {
+      // Build query based on selections.
+
+      console.log($scope.query);
+
+      var hits = searchProxy.search($scope.query);
 
       communicatorService.$emit('hits', {"hits" : hits});
     }

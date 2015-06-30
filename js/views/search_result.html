@@ -9,5 +9,8 @@
       <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
       <hr>
     </article>
+    <span class="no-results" data-ng-if="!hits.length">
+      <p>No results found.</p>
+    </span>
   </div>
 </div>

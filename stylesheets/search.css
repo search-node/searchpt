@@ -1,4 +1,6 @@
-/* line 1, ../scss/search.scss */
 .wrapper {
-  padding: 3em;
-}
+  padding: 3em; }
+
+.label {
+  margin-right: 1em;
+  padding: 0.5em; }
