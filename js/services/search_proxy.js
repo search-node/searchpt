@@ -11,6 +11,7 @@
  */
 angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorService', '$injector',
   function (CONFIG, communicatorService, $injector) {
+    'use strict';
 
     // Load provider based on configuration.
     var provider = $injector.get(CONFIG.provider.service);

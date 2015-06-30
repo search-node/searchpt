@@ -1,3 +1,9 @@
+<!--
+  Default view for the search result application.
+
+  You should not change this but point to another custom template in the
+  configuration object.
+-->
 <div class="row collapse">
   <div class="large-12 columns">
     <hr>
@@ -5,7 +11,7 @@
     <article data-ng-repeat="hit in hits">
       <strong>{{ hit.title }}</strong>
       <p>{{ hit.snippet }}</p>
-      <p><span>Level: </span>{{ hit.level }}</p>
+      <p><span>Level: </span><span data-ng-repeat="level in hit.levels">{{ level }} </span></p>
       <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
       <hr>
     </article>

@@ -9,23 +9,24 @@ angular.module('searchAppConfig', [])
     'name' : 'Search prototype',
     'version': '0.1-alpha1',
     'templates': {
-      'box': '/js/views/search_box.html',
-      'result': '/js/views/search_result.html'
+      'box': '/js/views/search.html',
+      'result': '/js/views/result.html'
     },
     'provider': {
       'service': 'jsonProvider',
-      'data': '/search_data.json',
+      'data': '/data.json',
       'filters': {
         'tags': {
           'name': 'Tags',
+          'type': 'and',
           'items': [
-            {
-              'name': 'Services',
-              'value': 'services'
-            },
             {
               'name': 'Angular',
               'value': 'angular'
+            },
+            {
+              'name': 'Developer',
+              'value': 'developer'
             },
             {
               'name': 'Javascript',
@@ -38,7 +39,8 @@ angular.module('searchAppConfig', [])
           ]
         },
         'levels':{
-          'name': 'Levels',
+          'name': 'Levels (or)',
+          'type': 'or',
           'items': [
             {
               'name': 'First',
