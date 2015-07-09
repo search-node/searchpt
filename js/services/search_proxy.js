@@ -27,8 +27,12 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      * @returns {Number|*|Object}
      *   The search result.
      */
-    this.search = function query(query) {
+    this.search = function search(query) {
       return provider.search(query);
-    }
+    };
+
+    this.getFilters = function getFilters() {
+      return provider.getFilters();
+    };
   }
 ]);

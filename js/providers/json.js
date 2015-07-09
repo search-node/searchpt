@@ -18,16 +18,70 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
       });
 
     /**
+     * The filters available.
+     *
+     * @returns json array.
+     */
+    this.getFilters = function getFilters() {
+      return {
+        'tags': {
+          'name': 'Tags',
+          'type': 'and',
+          'items': [
+            {
+              'name': 'Angular',
+              'value': 'angular'
+            },
+            {
+              'name': 'Developer',
+              'value': 'developer'
+            },
+            {
+              'name': 'Javascript',
+              'value': 'javascript'
+            },
+            {
+              'name': 'Chrome',
+              'value': 'chrome'
+            }
+          ]
+        },
+        'levels':{
+          'name': 'Levels (or)',
+          'type': 'or',
+          'items': [
+            {
+              'name': 'First',
+              'value': 1
+            },
+            {
+              'name': 'Second',
+              'value': 2
+            },
+            {
+              'name': 'Third',
+              'value': 3
+            },
+            {
+              'name': 'Fourth',
+              'value': 4
+            }
+          ]
+        }
+      };
+    };
+
+    /**
      * Search function to query the json data.
      *
-     * @param $query
+     * @param query
      *   The query parameters to search
      *
      * @returns {Array}
      *   The hits found.
      */
     this.search = function query(query) {
-
+      var self = this;
       var hits = angular.copy(data);
 
       // Search title.
@@ -38,7 +92,7 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
       // Search filters.
       angular.forEach(query.filters, function (filter, name) {
         // Get search type 'or' or 'and'.
-        var type = CONFIG.provider.filters[name].type;
+        var type = self.getFilters();
         var xp = false;
 
         angular.forEach(filter, function (enabled, value) {
@@ -67,6 +121,6 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
       });
 
       return hits;
-    }
+    };
   }
 ]);

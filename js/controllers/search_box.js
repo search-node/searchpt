@@ -20,11 +20,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
 
 
     // Check if filters are defined by the provider.
-    // @TODO: There must be a better way? Maybe ask the search provider for
-    //        filters?
-    if (CONFIG.provider.hasOwnProperty('filters')) {
-      $scope.filters = CONFIG.provider.filters;
-    }
+    $scope.filters = searchProxy.getFilters();
 
     /**
      * Execute the search and emit the results.
