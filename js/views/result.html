@@ -15,8 +15,13 @@
       <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
       <hr>
     </article>
+
+    <!-- No results -->
     <span class="no-results" data-ng-if="!hits.hits">
       <p>No results found.</p>
     </span>
+
+    <!-- Search result pager -->
+    <search-pager></search-pager>
   </div>
 </div>

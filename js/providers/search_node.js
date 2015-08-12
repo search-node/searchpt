@@ -176,13 +176,16 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       // Add pager to the query.
       if (searchQuery.hasOwnProperty('pager')) {
-        query.size = sesearchQueryarch.pager.size;
+        query.size = searchQuery.pager.size;
         query.from = searchQuery.pager.page * searchQuery.pager.size;
       }
 
       connect().then(function () {
         socket.emit('search', query);
         socket.on('result', function (hits) {
+
+          console.log(hits);
+
           deferred.resolve(hits);
         });
 

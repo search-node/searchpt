@@ -12,12 +12,24 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     // Set template to use.
     $scope.template = CONFIG.templates.result;
 
+
+    /**
+     * Pager search.
+     */
+    $scope.search = function search() {
+
+    };
+
     $scope.hits = [];
     communicatorService.$on('hits', function (event, data) {
       $scope.$apply(function() {
         $scope.hits = data.hits;
+      });
+    });
 
-        console.log(data.hits);
+    communicatorService.$on('pager', function (event, data) {
+      $scope.$apply(function() {
+        $scope.pager = data;
       });
     });
   }
