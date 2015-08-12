@@ -6,8 +6,8 @@
 /**
  * Search provider for JSON files.
  */
-angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
-  function (CONFIG, $http) {
+angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$q', '$http',
+  function (CONFIG, $q, $http) {
     'use strict';
 
     // Load JSON file based on configuration.
@@ -84,6 +84,8 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
       var self = this;
       var hits = angular.copy(data);
 
+      var deferred = $q.defer();
+
       // Search title.
       if (query.text !== '') {
         hits = JSON.search(data, '//*[contains(title, "' + query.text + '")]');
@@ -120,10 +122,15 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
         }
       });
 
-      return {
+      // This may seem strange, but it's to keep up with the way search node
+      // works. So it makes sens to return an resolve the promise just after
+      // each other.
+      deferred.resolve({
         'hits': hits.length,
         'results': hits
-      };
+      });
+
+      return deferred.promise;
     };
   }
 ]);

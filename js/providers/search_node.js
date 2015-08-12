@@ -183,9 +183,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       connect().then(function () {
         socket.emit('search', query);
         socket.on('result', function (hits) {
-
-          console.log(hits);
-
           deferred.resolve(hits);
         });
 

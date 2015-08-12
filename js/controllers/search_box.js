@@ -26,7 +26,13 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      * Execute the search and emit the results.
      */
     $scope.search = function search() {
-      communicatorService.$emit('hits', {"hits" : searchProxy.search($scope.query)});
+      searchProxy.search($scope.query).then(function (data) {
+        // Updated filters.
+        $scope.filters = searchProxy.getFilters();
+
+        // Send results.
+        communicatorService.$emit('hits', {"hits" : data});
+      });
     }
   }
 ]);
