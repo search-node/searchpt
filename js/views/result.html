@@ -7,15 +7,15 @@
 <div class="row collapse">
   <div class="large-12 columns">
     <hr>
-    <h3>Search results</h3>
-    <article data-ng-repeat="hit in hits">
+    <h3>Search results <span data-ng-if="hits.hits > 0">({{ hits.hits }})</span></h3>
+    <article data-ng-repeat="hit in hits.results">
       <strong>{{ hit.title }}</strong>
       <p>{{ hit.snippet }}</p>
       <p><span>Level: </span><span data-ng-repeat="level in hit.levels">{{ level }} </span></p>
       <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
       <hr>
     </article>
-    <span class="no-results" data-ng-if="!hits.length">
+    <span class="no-results" data-ng-if="!hits.hits">
       <p>No results found.</p>
     </span>
   </div>

@@ -120,7 +120,10 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$http',
         }
       });
 
-      return hits;
+      return {
+        'hits': hits.length,
+        'results': hits
+      };
     };
   }
 ]);
