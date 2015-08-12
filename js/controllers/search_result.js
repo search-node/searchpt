@@ -16,6 +16,8 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     communicatorService.$on('hits', function (event, data) {
       $scope.$apply(function() {
         $scope.hits = data.hits;
+
+        console.log(data.hits);
       });
     });
   }
