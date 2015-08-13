@@ -13,11 +13,17 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     $scope.template = CONFIG.templates.result;
 
 
+    // Check if the provider supports an pager.
+    if (CONFIG.provider.hasOwnProperty('pager')) {
+      // Add pager information to the scope.
+      $scope.pager = angular.copy(CONFIG.provider.pager);
+    }
+
     /**
-     * Pager search.
+     * Update pager information.
      */
     $scope.search = function search() {
-
+      communicatorService.$emit('pager', $scope.pager);
     };
 
     $scope.hits = [];

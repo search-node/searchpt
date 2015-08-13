@@ -21,19 +21,34 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     // Check if the provider supports an pager.
     if (CONFIG.provider.hasOwnProperty('pager')) {
       // Add pager information to the search query.
-      $scope.query['pager'] = CONFIG.provider.pager;
-
-      // Inform the result application about the pager.
-      communicatorService.$emit('pager', CONFIG.provider.pager);
+      $scope.query['pager'] = angular.copy(CONFIG.provider.pager);
     }
 
     // Check if filters are defined by the provider.
     $scope.filters = searchProxy.getFilters();
 
+
+    communicatorService.$on('pager', function (event, data) {
+      $scope.query.pager = {
+        'size': data.size,
+        'page': data.page
+      };
+      search();
+    });
+
+    $scope.searchClicked = function searchClicked() {
+      // Reset pager.
+      if ($scope.query.hasOwnProperty('pager')) {
+        $scope.query.pager = angular.copy(CONFIG.provider.pager);
+      }
+
+      search();
+    };
+
     /**
      * Execute the search and emit the results.
      */
-    $scope.search = function search() {
+    function search() {
       searchProxy.search($scope.query).then(function (data) {
         // Updated filters.
         $scope.filters = searchProxy.getFilters();
