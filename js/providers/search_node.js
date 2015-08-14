@@ -130,28 +130,108 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       return deferred.promise;
     }
 
-
+    /**
+     * Get the list of available filters.
+     *
+     *
+     * @PLAN:
+     *   Check if latest search return aggrations, if not use the configuration
+     *   to search the get all availble aggreations.
+     *
+     *   Merge it with configuration to ensure that all possible filters are
+     *   displayed with count.
+     */
     this.getFilters = function getFilters() {
+      var deferred = $q.defer();
 
+      // Get filters from configuration.
+      if (CONFIG.provider.hasOwnProperty('filters')) {
+        var filters = CONFIG.provider.filters;
+
+        // Basic aggregation query.
+        var query = {
+          'aggs': {}
+        };
+
+        // Extend query with filter fields.
+        for (var i = 0; i < filters.length; i++) {
+          var filter = filters[i];
+          query.aggs[filter.name] = {
+            "terms": {
+              'field': filter.field
+            }
+          }
+        }
+
+        // Send the request to search node.
+        connect().then(function () {
+          socket.emit('count', query);
+          socket.on('counts', function (counts) {
+            var results = {};
+
+            // Merge result with filters configuration as not all terms may have
+            // been used in the content and then not in found in the search
+            // node.
+            for (var i = 0; i < filters.length; i++) {
+              var filter = filters[i];
+
+              // Set basic filter with counts.
+              results[filter.field] = {
+                'name': filter.name,
+                'items': filter.terms
+              };
+
+              // Run through counts and update the filter.
+              for (var j = 0; j < counts[filter.name].buckets.length; j++) {
+                var bucket = counts[filter.name].buckets[j];
+                results[filter.field].items[bucket.key]['count'] = bucket.doc_count;
+              }
+            }
+
+            // Return the result.
+            deferred.resolve(results);
+          });
+
+          // Catch search errors.
+          socket.on('searchError', function (error) {
+            console.error('Search error', error.message);
+            deferred.reject(error.message);
+          });
+        });
+      }
+      else {
+        deferred.resolve({});
+      }
+
+      return deferred.promise;
     };
 
+    /**
+     * Execute search query.
+     *
+     * @param searchQuery
+     * @returns {*}
+     */
     this.search = function query(searchQuery) {
-      console.log(searchQuery);
       var deferred = $q.defer();
 
       // Build default match all search query.
       var query = {
         "index": configuration.index,
         "query": {
-          "match_all": {}
+          "filtered": {
+            "query" : {
+              "match_all": {}
+            }
+          }
         }
       };
 
       // Text given build field search query.
       // The analyser ensures that we match the who text string sent not part
-      // of. @TODO: It this the right behaviour.
+      // of.
       if (searchQuery.text !== undefined && searchQuery.text !== '') {
-        query.query = {
+        query.query.filtered.query = {
           "multi_match": {
             "query": searchQuery.text,
             "fields": configuration.fields,
@@ -160,19 +240,51 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         };
       }
 
-      //// Add sort
-      //query.sort = search.sort;
-      //
-      //// Add filter.
-      //// @TODO: move to the start.
-      //if (search.filter !== undefined) {
-      //  query.query = {
-      //    "filtered": {
-      //      "query": query.query,
-      //      "filter": search.filter
-      //    }
-      //  };
-      //}
+      // Add filter.
+      if (searchQuery.hasOwnProperty('filters')) {
+        var filters = angular.copy(searchQuery.filters);
+
+        // Build query filter.
+        var queryFilter =  {
+          "bool": {
+            "must": [ ]
+          }
+        };
+
+        // Load over all filters.
+        for (var field in filters) {
+
+          /**
+           * @TODO: Needs to get information from configuration about execution
+           *        type?
+           */
+          var terms = {
+            "execution" : "and"
+          };
+
+          terms[field] = [];
+          for (var term in filters[field]) {
+            // Check the the term is "true" selected.
+            if (filters[field][term]) {
+              terms[field].push(term);
+            }
+          }
+
+          /**
+           * @TODO: Handled more than one filter
+           */
+          if (terms[field].length) {
+            queryFilter.bool.must.push({ "terms": angular.copy(terms) });
+          }
+        }
+
+        /**
+         * @TODO: Add the query filter if filled out.
+         */
+        if (queryFilter.bool.must.length) {
+          query.query.filtered['filter'] = queryFilter;
+        }
+      }
 
       // Add pager to the query.
       if (searchQuery.hasOwnProperty('pager')) {
@@ -180,12 +292,11 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         query.from = searchQuery.pager.page * searchQuery.pager.size;
       }
 
+      console.log(JSON.stringify(query));
+
       connect().then(function () {
         socket.emit('search', query);
         socket.on('result', function (hits) {
-
-          console.log(hits);
-
           deferred.resolve(hits);
         });
 

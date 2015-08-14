@@ -85,3 +85,6 @@
 .label {
   margin-right: 1em;
   padding: 0.5em; }
+
+.disabled {
+  color: #cccccc; }

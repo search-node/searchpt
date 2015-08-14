@@ -25,9 +25,18 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     }
 
     // Check if filters are defined by the provider.
-    $scope.filters = searchProxy.getFilters();
+    searchProxy.getFilters().then(
+      function (filters) {
+        $scope.filters = filters;
+      },
+      function (reason) {
+        console.error(reason);
+      }
+    );
 
-
+    /**
+     * @TODO: Missing description.
+     */
     communicatorService.$on('pager', function (event, data) {
       $scope.query.pager = {
         'size': data.size,
@@ -36,6 +45,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       search();
     });
 
+    /**
+     * @TODO: Missing description.
+     */
     $scope.searchClicked = function searchClicked() {
       // Reset pager.
       if ($scope.query.hasOwnProperty('pager')) {
@@ -49,13 +61,30 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      * Execute the search and emit the results.
      */
     function search() {
-      searchProxy.search($scope.query).then(function (data) {
-        // Updated filters.
-        $scope.filters = searchProxy.getFilters();
+      console.log($scope.query);
+      searchProxy.search($scope.query).then(
+        function (data) {
+          // Updated filters.
+          searchProxy.getFilters().then(
+            function (filters) {
+              /**
+               * @TODO: Handled the preselection of the filters. So select is
+               *        not reset every time search is executed.
+               */
+              $scope.filters = filters;
+            },
+            function (reason) {
+              console.error(reason);
+            }
+          );
 
-        // Send results.
-        communicatorService.$emit('hits', {"hits" : data});
-      });
+          // Send results.
+          communicatorService.$emit('hits', {"hits" : data});
+        },
+        function (reason) {
+          console.error(reason);
+        }
+      );
     }
   }
 ]);

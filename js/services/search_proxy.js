@@ -31,6 +31,11 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       return provider.search(query);
     };
 
+    /**
+     * Get filters provided by search engine used.
+     *
+     * @returns json
+     */
     this.getFilters = function getFilters() {
       return provider.getFilters();
     };

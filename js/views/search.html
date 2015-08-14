@@ -13,9 +13,9 @@
   </div>
   <div class="large-6 columns" data-ng-repeat="(id, filter) in filters">
     <label><strong>{{ filter.name }}</strong></label>
-    <span data-ng-repeat="item in filter.items">
-      <input id="{{ item.value }}" type="checkbox" data-ng-model="query.filters[id][item.value]" data-ng-click="searchClicked()">
-      <label for="{{ item.value }}">{{ item.name }}</label>
+    <span data-ng-repeat="(name, item) in filter.items">
+      <input id="{{ item.value }}" data-ng-disabled="!item.count" type="checkbox" data-ng-model="query.filters[id][item.value]" data-ng-click="searchClicked()">
+      <label data-ng-class="{ disabled: !item.count }" for="{{ item.value }}">{{ name }}</label>
     </span>
   </div>
 </div>
