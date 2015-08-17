@@ -18,10 +18,17 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     var token = null;
 
     // Create cache object.
-    var cache = CacheFactory('profileCache', {
-      maxAge: configuration.cacheExpire,
-      deleteOnExpire: 'aggressive'
+    var searchCache = CacheFactory('searchCache', {
+      maxAge: configuration.cacheExpire * 1000,
+      deleteOnExpire: 'passive',
+      storageMode: 'localStorage',
+      onExpire: function (key, value) {
+        console.log('Expire: ' + key);
+      }
     });
+
+    // Holder for the latest search query filters.
+    var currentFilters;
 
     /**
      * Load the socket.io library provided by the search node.
@@ -212,34 +219,49 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (CONFIG.provider.hasOwnProperty('filters')) {
         var filters = CONFIG.provider.filters;
 
-        // Check if filters are cached.
-        var cachedFilters = cache.get('filters');
-        if (cachedFilters !== undefined) {
-          deferred.resolve(cachedFilters);
+        // If no search have been executed yet, load the default filters across
+        // all indexed data.
+        if (currentFilters === undefined) {
+          // Check if filters are cached.
+          var cachedFilters = searchCache.get('filters');
+          if (cachedFilters !== undefined) {
+            // Store current filters.
+            currentFilters = cachedFilters;
+
+            // Return the result.
+            deferred.resolve(angular.copy(currentFilters));
+          }
+          else {
+            // Get the query.
+            var query = buildAggregationQuery(filters);
+
+            // Send the request to search node.
+            connect().then(function () {
+              socket.emit('count', query);
+              socket.once('counts', function (counts) {
+                var results = parseFilters(counts);
+
+                // Store initials filters in cache.
+                searchCache.put('filters', results);
+
+                // Store current filters.
+                currentFilters = results;
+
+                // Return the result.
+                deferred.resolve(results);
+              });
+
+              // Catch search errors.
+              socket.once('searchError', function (error) {
+                console.error('Search error', error.message);
+                deferred.reject(error.message);
+              });
+            });
+          }
         }
         else {
-          // Get the query.
-          var query = buildAggregationQuery(filters);
-
-          // Send the request to search node.
-          connect().then(function () {
-            socket.emit('count', query);
-            socket.once('counts', function (counts) {
-              var results = parseFilters(counts);
-
-              // Store filters in cache.
-              cache.put('filters', angular.copy(results));
-
-              // Return the result.
-              deferred.resolve(results);
-            });
-
-            // Catch search errors.
-            socket.once('searchError', function (error) {
-              console.error('Search error', error.message);
-              deferred.reject(error.message);
-            });
-          });
+          // Return the result.
+          deferred.resolve(angular.copy(currentFilters));
         }
       }
       else {
@@ -343,14 +365,11 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
 
       // Check cache for hits.
-      var hits = cache.get(cid);
+      var hits = searchCache.get(cid);
       if (hits !== undefined) {
         // Update filters cache.
         if (hits.hasOwnProperty('aggs')) {
-          /**
-           * @TODO: Find a better way to handle filters (Non select vs. current search).
-           */
-          cache.put('filters', parseFilters(angular.copy(hits.aggs)));
+          currentFilters = parseFilters(angular.copy(hits.aggs));
         }
 
         deferred.resolve(hits);
@@ -362,11 +381,12 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
             // Update cache filters cache.
             if (hits.hasOwnProperty('aggs')) {
-              cache.put('filters', parseFilters(angular.copy(hits.aggs)));
+              // Store current filters.
+              currentFilters = parseFilters(angular.copy(hits.aggs));
             }
 
             // Save hits in cache.
-            cache.put(cid, hits);
+            searchCache.put(cid, hits);
 
             deferred.resolve(hits);
           });
