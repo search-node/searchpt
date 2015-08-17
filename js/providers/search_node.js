@@ -19,7 +19,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
     // Create cache object.
     var cache = CacheFactory('profileCache', {
-      maxAge: 5000,
+      maxAge: configuration.cacheExpire,
       deleteOnExpire: 'aggressive'
     });
 
@@ -162,13 +162,14 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     }
 
     /**
-     *
+     * Parse filter configuration and search aggregations.
      *
      * Merge result with filters configuration as not all terms may have
      * been used in the content and then not in found in the search
      * node.
      *
      * @param aggs
+     *
      * @returns {{}}
      */
     function parseFilters(aggs) {
@@ -197,7 +198,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     /**
      * Get the list of available filters.
      *
-     *
      * @PLAN:
      *   Check if latest search return aggregations, if not use the configuration
      *   to search the get all available aggregations.
@@ -213,10 +213,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         var filters = CONFIG.provider.filters;
 
         // Check if filters are cached.
-        var counts = cache.get('counts');
-        if (counts !== undefined) {
-          var results = parseFilters(counts);
-          deferred.resolve(results);
+        var cachedFilters = cache.get('filters');
+        if (cachedFilters !== undefined) {
+          deferred.resolve(cachedFilters);
         }
         else {
           // Get the query.
@@ -225,18 +224,18 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           // Send the request to search node.
           connect().then(function () {
             socket.emit('count', query);
-            socket.on('counts', function (counts) {
+            socket.once('counts', function (counts) {
               var results = parseFilters(counts);
 
               // Store filters in cache.
-              cache.put('counts', angular.copy(counts));
+              cache.put('filters', angular.copy(results));
 
               // Return the result.
               deferred.resolve(results);
             });
 
             // Catch search errors.
-            socket.on('searchError', function (error) {
+            socket.once('searchError', function (error) {
               console.error('Search error', error.message);
               deferred.reject(error.message);
             });
@@ -256,7 +255,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * @param searchQuery
      * @returns {*}
      */
-    this.search = function query(searchQuery) {
+    this.search = function search(searchQuery) {
       var deferred = $q.defer();
 
       // Build default match all search query.
@@ -297,7 +296,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
         // Load over all filters.
         for (var field in filters) {
-
           /**
            * @TODO: Needs to get information from configuration about execution
            *        type?
@@ -341,22 +339,45 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         angular.extend(query, aggs);
       }
 
-      connect().then(function () {
-        socket.emit('search', query);
-        socket.on('result', function (hits) {
+      // Create cache key based on the finale search query.
+      var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
 
-          // Update cache.
-          cache.put('counts', angular.copy(hits.aggs));
+      // Check cache for hits.
+      var hits = cache.get(cid);
+      if (hits !== undefined) {
+        // Update filters cache.
+        if (hits.hasOwnProperty('aggs')) {
+          /**
+           * @TODO: Find a better way to handle filters (Non select vs. current search).
+           */
+          cache.put('filters', parseFilters(angular.copy(hits.aggs)));
+        }
 
-          deferred.resolve(hits);
+        deferred.resolve(hits);
+      }
+      else {
+        connect().then(function () {
+          socket.emit('search', query);
+          socket.once('result', function (hits) {
+
+            // Update cache filters cache.
+            if (hits.hasOwnProperty('aggs')) {
+              cache.put('filters', parseFilters(angular.copy(hits.aggs)));
+            }
+
+            // Save hits in cache.
+            cache.put(cid, hits);
+
+            deferred.resolve(hits);
+          });
+
+          // Catch search errors.
+          socket.once('searchError', function (error) {
+            console.error('Search error', error.message);
+            deferred.reject(error.message);
+          });
         });
-
-        // Catch search errors.
-        socket.on('searchError', function (error) {
-          console.error('Search error', error.message);
-          deferred.reject(error.message);
-        });
-      });
+      }
 
       return deferred.promise;
     };
