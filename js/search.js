@@ -5,7 +5,7 @@
  */
 
 // Define the angular applications.
-var searchBoxApp = angular.module('searchBoxApp', ['communicationService', 'searchAppConfig']);
+var searchBoxApp = angular.module('searchBoxApp', ['communicationService', 'searchAppConfig', 'angular-cache']);
 var searchResultApp = angular.module('searchResultApp', ['communicationService', 'searchAppConfig']);
 
 /**

@@ -5,8 +5,8 @@
 
 
 
-angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http',
-  function (CONFIG, $q, $http) {
+angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http', 'CacheFactory',
+  function (CONFIG, $q, $http, CacheFactory) {
     'use strict';
 
     // Configuration options.
@@ -16,6 +16,12 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     var socket;
     var loadedSocketIo = false;
     var token = null;
+
+    // Create cache object.
+    var cache = CacheFactory('profileCache', {
+      maxAge: 5000,
+      deleteOnExpire: 'aggressive'
+    });
 
     /**
      * Load the socket.io library provided by the search node.
@@ -104,6 +110,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      *   An promise is return that will be resolved on connection.
      */
     function connect() {
+      console.log('Socket Connect');
       // Try to connect to the server if not already connected.
       var deferred = $q.defer();
 
@@ -131,12 +138,69 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     }
 
     /**
+     * Builds aggregation query based on filters.
+     *
+     * @param filters
+     */
+    function buildAggregationQuery(filters) {
+      // Basic aggregation query.
+      var query = {
+        'aggs': {}
+      };
+
+      // Extend query with filter fields.
+      for (var i = 0; i < filters.length; i++) {
+        var filter = filters[i];
+        query.aggs[filter.name] = {
+          "terms": {
+            'field': filter.field
+          }
+        }
+      }
+
+      return query;
+    }
+
+    /**
+     *
+     *
+     * Merge result with filters configuration as not all terms may have
+     * been used in the content and then not in found in the search
+     * node.
+     *
+     * @param aggs
+     * @returns {{}}
+     */
+    function parseFilters(aggs) {
+      var results = {};
+      var filters = CONFIG.provider.filters;
+
+      for (var i = 0; i < filters.length; i++) {
+        var filter = angular.copy(filters[i]);
+
+        // Set basic filter with counts.
+        results[filter.field] = {
+          'name': filter.name,
+          'items': filter.terms
+        };
+
+        // Run through counts and update the filter.
+        for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
+          var bucket = aggs[filter.name].buckets[j];
+          results[filter.field].items[bucket.key]['count'] = Number(bucket.doc_count);
+        }
+      }
+
+      return results;
+    }
+
+    /**
      * Get the list of available filters.
      *
      *
      * @PLAN:
-     *   Check if latest search return aggrations, if not use the configuration
-     *   to search the get all availble aggreations.
+     *   Check if latest search return aggregations, if not use the configuration
+     *   to search the get all available aggregations.
      *
      *   Merge it with configuration to ensure that all possible filters are
      *   displayed with count.
@@ -148,56 +212,36 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (CONFIG.provider.hasOwnProperty('filters')) {
         var filters = CONFIG.provider.filters;
 
-        // Basic aggregation query.
-        var query = {
-          'aggs': {}
-        };
-
-        // Extend query with filter fields.
-        for (var i = 0; i < filters.length; i++) {
-          var filter = filters[i];
-          query.aggs[filter.name] = {
-            "terms": {
-              'field': filter.field
-            }
-          }
+        // Check if filters are cached.
+        var counts = cache.get('counts');
+        if (counts !== undefined) {
+          var results = parseFilters(counts);
+          deferred.resolve(results);
         }
+        else {
+          // Get the query.
+          var query = buildAggregationQuery(filters);
 
-        // Send the request to search node.
-        connect().then(function () {
-          socket.emit('count', query);
-          socket.on('counts', function (counts) {
-            var results = {};
+          // Send the request to search node.
+          connect().then(function () {
+            socket.emit('count', query);
+            socket.on('counts', function (counts) {
+              var results = parseFilters(counts);
 
-            // Merge result with filters configuration as not all terms may have
-            // been used in the content and then not in found in the search
-            // node.
-            for (var i = 0; i < filters.length; i++) {
-              var filter = filters[i];
+              // Store filters in cache.
+              cache.put('counts', angular.copy(counts));
 
-              // Set basic filter with counts.
-              results[filter.field] = {
-                'name': filter.name,
-                'items': filter.terms
-              };
+              // Return the result.
+              deferred.resolve(results);
+            });
 
-              // Run through counts and update the filter.
-              for (var j = 0; j < counts[filter.name].buckets.length; j++) {
-                var bucket = counts[filter.name].buckets[j];
-                results[filter.field].items[bucket.key]['count'] = bucket.doc_count;
-              }
-            }
-
-            // Return the result.
-            deferred.resolve(results);
+            // Catch search errors.
+            socket.on('searchError', function (error) {
+              console.error('Search error', error.message);
+              deferred.reject(error.message);
+            });
           });
-
-          // Catch search errors.
-          socket.on('searchError', function (error) {
-            console.error('Search error', error.message);
-            deferred.reject(error.message);
-          });
-        });
+        }
       }
       else {
         deferred.resolve({});
@@ -278,9 +322,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           }
         }
 
-        /**
-         * @TODO: Add the query filter if filled out.
-         */
+        // Add the query filter if filled out.
         if (queryFilter.bool.must.length) {
           query.query.filtered['filter'] = queryFilter;
         }
@@ -292,11 +334,20 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         query.from = searchQuery.pager.page * searchQuery.pager.size;
       }
 
-      console.log(JSON.stringify(query));
+      // Check if aggregations/filters counts should be used.
+      if (CONFIG.provider.hasOwnProperty('filters')) {
+        // Get the query.
+        var aggs = buildAggregationQuery(CONFIG.provider.filters);
+        angular.extend(query, aggs);
+      }
 
       connect().then(function () {
         socket.emit('search', query);
         socket.on('result', function (hits) {
+
+          // Update cache.
+          cache.put('counts', angular.copy(hits.aggs));
+
           deferred.resolve(hits);
         });
 

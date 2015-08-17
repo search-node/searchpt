@@ -61,16 +61,11 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      * Execute the search and emit the results.
      */
     function search() {
-      console.log($scope.query);
       searchProxy.search($scope.query).then(
         function (data) {
           // Updated filters.
           searchProxy.getFilters().then(
             function (filters) {
-              /**
-               * @TODO: Handled the preselection of the filters. So select is
-               *        not reset every time search is executed.
-               */
               $scope.filters = filters;
             },
             function (reason) {
