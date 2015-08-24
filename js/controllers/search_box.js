@@ -5,8 +5,8 @@
  * It controls the search box and filters.
  */
 
-angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communicatorService', 'searchProxy', '$scope', '$timeout',
-  function (CONFIG, communicatorService, searchProxy, $scope, $timeout) {
+angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communicatorService', 'searchProxy', '$scope',
+  function (CONFIG, communicatorService, searchProxy, $scope) {
     'use strict';
 
     // Set template to use.
@@ -21,7 +21,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     // Check if the provider supports an pager.
     if (CONFIG.provider.hasOwnProperty('pager')) {
       // Add pager information to the search query.
-      $scope.query['pager'] = angular.copy(CONFIG.provider.pager);
+      $scope.query.pager = angular.copy(CONFIG.provider.pager);
     }
 
     // Check if filters are defined by the provider.

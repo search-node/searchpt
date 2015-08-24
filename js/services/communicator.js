@@ -37,5 +37,5 @@ angular.module('communicationService', [])
       $rootScope.$on(name, function (event, message) {
         listener.apply($rootScope, [event, message]);
       });
-    }
+    };
   });

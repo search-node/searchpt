@@ -18,10 +18,10 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     var token = null;
 
     // Create cache object.
-    var searchCache = CacheFactory('searchCache', {
+    var searchCache = new CacheFactory('searchCache', {
       maxAge: configuration.cacheExpire * 1000,
       deleteOnExpire: 'passive',
-      storageMode: 'localStorage',
+      storageMode: 'localStorage'
     });
 
     // Holder for the latest search query filters.
@@ -46,7 +46,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         if (script.readyState) {
           // Handle internet explore.
           script.onreadystatechange = function () {
-            if (script.readyState == "loaded" || script.readyState == "complete") {
+            if (script.readyState === "loaded" || script.readyState === "complete") {
               script.onreadystatechange = null;
               loadedSocketIo = true;
               deferred.resolve();
@@ -158,7 +158,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           "terms": {
             'field': filter.field
           }
-        }
+        };
       }
 
       return query;
@@ -191,7 +191,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         // Run through counts and update the filter.
         for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
           var bucket = aggs[filter.name].buckets[j];
-          results[filter.field].items[bucket.key]['count'] = Number(bucket.doc_count);
+          results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
         }
       }
 
@@ -340,7 +340,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
         // Add the query filter if filled out.
         if (queryFilter.bool.must.length) {
-          query.query.filtered['filter'] = queryFilter;
+          query.query.filtered.filter = queryFilter;
         }
       }
 

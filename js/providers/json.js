@@ -99,7 +99,7 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$q', '$http',
 
         angular.forEach(filter, function (enabled, value) {
           if (enabled) {
-            if (type == 'or') {
+            if (type === 'or') {
               // Or type search needs to build and xpath expression for all items
               // in the filter.
               if (xp === false) {
@@ -117,7 +117,7 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$q', '$http',
         });
 
         // After all other search apply the "or" search expression.
-        if (type == 'or' && xp) {
+        if (type === 'or' && xp) {
           hits = JSON.search(hits, xp);
         }
       });
