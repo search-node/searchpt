@@ -1,0 +1,13 @@
+$black:                #000;
+$white:                #fff;
+
+$gray-lightest:       lighten($black, 98%);
+$gray-lighter:        lighten($black, 90%);
+$gray-light:          lighten($black, 80%);
+$gray:                lighten($black, 70%);
+$gray-dark:           lighten($black, 45%);
+$gray-darker:         lighten($black, 35%);
+$gray-darkest:        lighten($black, 25%);
+
+$beige:                #f0f0e1;
+$beige-dark:           #e4e4d5;

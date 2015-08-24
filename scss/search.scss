@@ -1,3 +1,19 @@
+/* Compass */
+@import "compass/css3";
+
+@import "color";
+@import "pager";
+
 .wrapper {
   padding: 3em;
 }
+
+.label {
+  margin-right: 1em;
+  padding: 0.5em;
+}
+
+.disabled {
+  color: $gray-light;
+}
+

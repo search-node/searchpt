@@ -1,0 +1,21 @@
+<!--
+  Default view for the search box.
+
+  You should not change this but point to another custom template in the
+  configuration object.
+-->
+<div class="row collapse">
+  <div class="small-10 columns">
+    <input type="text" placeholder="Søg, f.eks. musik, kursus" data-code="13" data-key-code="searchClicked()" data-ng-model="query.text">
+  </div>
+  <div class="small-2 columns">
+    <a href="#" class="button postfix" data-ng-click="searchClicked()">Søg</a>
+  </div>
+  <div class="large-6 columns" data-ng-repeat="(id, filter) in filters">
+    <label><strong>{{ filter.name }}</strong></label>
+    <span data-ng-repeat="(key, item) in filter.items">
+      <input id="{{ key }}" data-ng-disabled="!item.count" type="checkbox" data-ng-model="query.filters[id][key]" data-ng-click="searchClicked()">
+      <label data-ng-class="{ disabled: !item.count }" for="{{ key }}">{{ item.value }}</label>
+    </span>
+  </div>
+</div>

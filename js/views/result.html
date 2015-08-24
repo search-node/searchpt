@@ -1,0 +1,27 @@
+<!--
+  Default view for the search result application.
+
+  You should not change this but point to another custom template in the
+  configuration object.
+-->
+<div class="row collapse">
+  <div class="large-12 columns">
+    <hr>
+    <h3>Search results <span data-ng-if="hits.hits > 0">({{ hits.hits }})</span></h3>
+    <article data-ng-repeat="hit in hits.results">
+      <strong>{{ hit.title }}</strong>
+      <p>{{ hit.snippet }}</p>
+      <p><span>Level: </span><span data-ng-repeat="level in hit.levels">{{ level }} </span></p>
+      <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
+      <hr>
+    </article>
+
+    <!-- No results -->
+    <span class="no-results" data-ng-if="!hits.hits">
+      <p>No results found.</p>
+    </span>
+
+    <!-- Search pager if the provider supports it -->
+    <search-pager></search-pager>
+  </div>
+</div>
