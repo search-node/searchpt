@@ -9,8 +9,16 @@ var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var ngAnnotate = require('gulp-ng-annotate');
-var rename = require("gulp-rename");
+var rename = require('gulp-rename');
 
+var header = require('gulp-header');
+var pkg = require('./version.json');
+var banner = ['/**',
+  ' * @name <%= pkg.name %>',
+  ' * @version v<%= pkg.version %>',
+  ' * @link <%= pkg.link %>',
+  ' */',
+  ''].join('\n');
 
 // We only want to process our own non-processed JavaScript files.
 var jsPath = ['./js/search.js', './js/*/*.js', '!./js/assets/*'];
@@ -64,6 +72,7 @@ gulp.task('appJs', function () {
       .pipe(uglify())
     .pipe(sourcemaps.write('/maps'))
     .pipe(rename({extname: ".min.js"}))
+    .pipe(header(banner, { pkg : pkg } ))
     .pipe(gulp.dest(buildDir))
 });
 
