@@ -22,9 +22,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       maxAge: configuration.cacheExpire * 1000,
       deleteOnExpire: 'passive',
       storageMode: 'localStorage',
-      onExpire: function (key, value) {
-        console.log('Expire: ' + key);
-      }
     });
 
     // Holder for the latest search query filters.
@@ -117,7 +114,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      *   An promise is return that will be resolved on connection.
      */
     function connect() {
-      console.log('Socket Connect');
       // Try to connect to the server if not already connected.
       var deferred = $q.defer();
 

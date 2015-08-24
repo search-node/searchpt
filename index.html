@@ -50,7 +50,7 @@
     <div class="wrapper">
 
       <!-- Search box application -->
-      <form id="searchBoxApp" data-ng-controller="boxController">
+      <form id="searchBoxApp" data-ng-strict-di data-ng-controller="boxController">
         <span data-ng-include="template">
           <div class="row collapse">
             <div class="small-10 columns">
@@ -64,7 +64,7 @@
       </form>
 
        <!-- Search result application -->
-      <form id="searchResultApp"  data-ng-controller="resultController" >
+      <form id="searchResultApp" data-ng-strict-di data-ng-controller="resultController" >
         <span data-ng-include="template">
           <div class="row collapse">
             No results.
