@@ -5,13 +5,15 @@
  */
 
 // Define the angular applications.
-var searchBoxApp = angular.module('searchBoxApp', ['communicationService', 'searchAppConfig', 'angular-cache']);
-var searchResultApp = angular.module('searchResultApp', ['communicationService', 'searchAppConfig']);
+angular.module('searchBoxApp', ['communicationService', 'searchAppConfig', 'angular-cache']);
+angular.module('searchResultApp', ['communicationService', 'searchAppConfig']);
 
 /**
  * When the document is ready bootstrap the two applications.
  */
 angular.element(document).ready(function() {
+  "use strict";
+
   // Bootstrap the search result area. This has to be booted first to ensure
   // that it's ready for events from the search box bootstrap process.
   var result = document.getElementById("searchResultApp");
