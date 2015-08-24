@@ -62,7 +62,7 @@ gulp.task('appJs', function () {
       .pipe(concat('search.js'))
       .pipe(ngAnnotate())
       .pipe(uglify())
-    .pipe(sourcemaps.write())
+    .pipe(sourcemaps.write('/maps'))
     .pipe(rename({extname: ".min.js"}))
     .pipe(gulp.dest(buildDir))
 });
