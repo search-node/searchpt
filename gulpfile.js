@@ -69,7 +69,7 @@ gulp.task('appJs', function () {
     .pipe(sourcemaps.init())
       .pipe(concat('search.js'))
       .pipe(ngAnnotate())
-      .pipe(uglify())
+      //.pipe(uglify())
     .pipe(sourcemaps.write('/maps'))
     .pipe(rename({extname: ".min.js"}))
     .pipe(header(banner, { pkg : pkg } ))
