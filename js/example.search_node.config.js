@@ -10,7 +10,8 @@ angular.module('searchAppConfig', [])
     'version': '0.1-alpha1',
     'templates': {
       'box': '/js/views/search.html',
-      'result': '/js/views/result.html'
+      'result': '/js/views/result.html',
+      'pager': '/js/directive/pager-directive.html'
     },
     'provider': {
       'service': 'searchNodeProvider',
