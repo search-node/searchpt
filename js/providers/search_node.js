@@ -177,21 +177,23 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      */
     function parseFilters(aggs) {
       var results = {};
-      var filters = CONFIG.provider.filters;
+      if (CONFIG.provider.hasOwnProperty('filters')) {
+        var filters = CONFIG.provider.filters;
 
-      for (var i = 0; i < filters.length; i++) {
-        var filter = angular.copy(filters[i]);
+        for (var i = 0; i < filters.length; i++) {
+          var filter = angular.copy(filters[i]);
 
-        // Set basic filter with counts.
-        results[filter.field] = {
-          'name': filter.name,
-          'items': filter.terms
-        };
+          // Set basic filter with counts.
+          results[filter.field] = {
+            'name': filter.name,
+            'items': filter.terms
+          };
 
-        // Run through counts and update the filter.
-        for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
-          var bucket = aggs[filter.name].buckets[j];
-          results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
+          // Run through counts and update the filter.
+          for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
+            var bucket = aggs[filter.name].buckets[j];
+            results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
+          }
         }
       }
 
