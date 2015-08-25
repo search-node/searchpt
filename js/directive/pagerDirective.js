@@ -6,8 +6,8 @@
 /**
  * Paging directive.
  */
-angular.module('searchResultApp').directive('searchPager', [
-  function () {
+angular.module('searchResultApp').directive('searchPager', ['CONFIG',
+  function (CONFIG) {
     'use strict';
 
     return {
@@ -54,8 +54,7 @@ angular.module('searchResultApp').directive('searchPager', [
           $scope.pager.pages = pages;
         });
       },
-      templateUrl: '/js/directive/pager-directive.html'
+      templateUrl: CONFIG.templates.pager
     };
   }
 ]);
-
