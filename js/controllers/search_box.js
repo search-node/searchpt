@@ -9,6 +9,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
   function (CONFIG, communicatorService, searchProxy, $scope) {
     'use strict';
 
+    // Set the filters to get the UI initials fast.
+    $scope.filters = searchProxy.getRawFilters();
+
     // Set template to use.
     $scope.template = CONFIG.templates.box;
 
@@ -24,8 +27,8 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       $scope.query.pager = angular.copy(CONFIG.provider.pager);
     }
 
-    // Check if filters are defined by the provider.
-    searchProxy.getFilters().then(
+    // Get filters based on search content (maybe slow).
+    $scope.filters = searchProxy.getFilters().then(
       function (filters) {
         $scope.filters = filters;
       },

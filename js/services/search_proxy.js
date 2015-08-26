@@ -32,6 +32,15 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     };
 
     /**
+     * Get filters provided by configuraion.
+     *
+     * @returns json
+     */
+    this.getRawFilters = function getRawFilters() {
+      return provider.getRawFilters();
+    };
+
+    /**
      * Get filters provided by search engine used.
      *
      * @returns json
