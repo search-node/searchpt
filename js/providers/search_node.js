@@ -3,8 +3,6 @@
  * Search provider for the search node framework.
  */
 
-
-
 angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http', 'CacheFactory',
   function (CONFIG, $q, $http, CacheFactory) {
     'use strict';
@@ -198,6 +196,29 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       }
 
       return results;
+    }
+    /**
+     * Get the list of available filters not parsed with search results.
+     *
+     * @return array
+     *  The filters from the confiuration.
+     */
+    this.getRawFilters = function getRawFilters() {
+      var result = {};
+
+      if (CONFIG.provider.hasOwnProperty('filters')) {
+        var filters = CONFIG.provider.filters;
+        for (var i = 0; i < filters.length; i++) {
+
+          // Set basic filter with counts.
+          result[filters[i].field] = {
+            'name': filters[i].name,
+            'items': filters[i].terms
+          };
+        }
+      }
+
+      return result;
     }
 
     /**
