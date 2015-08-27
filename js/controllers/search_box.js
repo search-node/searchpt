@@ -9,8 +9,11 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
   function (CONFIG, communicatorService, searchProxy, $scope) {
     'use strict';
 
-    // Set the filters to get the UI initials fast.
-    $scope.filters = searchProxy.getRawFilters();
+    // Get state from pervious searches.
+    var state = searchProxy.init();
+
+    // Get filters.
+    $scope.filters = state.filters;
 
     // Set template to use.
     $scope.template = CONFIG.templates.box;
@@ -21,21 +24,29 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       'filters': {}
     };
 
-    // Check if the provider supports an pager.
-    if (CONFIG.provider.hasOwnProperty('pager')) {
-      // Add pager information to the search query.
-      $scope.query.pager = angular.copy(CONFIG.provider.pager);
+    // Check if any search query have been located from the hash tag.
+    if (state.hasOwnProperty('query')) {
+      // Query found in state, so execute that search.
+      $scope.query = state.query;
+      search();
     }
-
-    // Get filters based on search content (maybe slow).
-    $scope.filters = searchProxy.getFilters().then(
-      function (filters) {
-        $scope.filters = filters;
-      },
-      function (reason) {
-        console.error(reason);
+    else {
+      // Check if the provider supports an pager.
+      if (CONFIG.provider.hasOwnProperty('pager')) {
+        // Add pager information to the search query.
+        $scope.query.pager = angular.copy(CONFIG.provider.pager);
       }
-    );
+
+      // Get filters based on search content (maybe slow).
+      $scope.filters = searchProxy.getFilters().then(
+        function (filters) {
+          $scope.filters = filters;
+        },
+        function (reason) {
+          console.error(reason);
+        }
+      );
+    }
 
     /**
      * @TODO: Missing description.
