@@ -12,8 +12,7 @@ angular.module('searchBoxApp').directive('keyCode', function keyCode() {
     link: function($scope, $element, $attrs) {
       $element.bind("keypress", function(event) {
         var keyCode = event.which || event.keyCode;
-
-        if (keyCode === $attrs.code) {
+        if (keyCode === Number($attrs.code)) {
           $scope.$apply(function() {
             $scope.$eval($attrs.keyCode, { $event: event });
           });

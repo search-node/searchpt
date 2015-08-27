@@ -60,6 +60,12 @@ gulp.task('watch', function() {
   gulp.watch(sassPath, ['sass']);
 });
 
+/**
+ * Watch javascript files for changes.
+ */
+gulp.task('js-watch', function() {
+  gulp.watch(jsPath, ['jshint']);
+});
 
 /**
  * Build single app.js file.
@@ -69,7 +75,7 @@ gulp.task('appJs', function () {
     .pipe(sourcemaps.init())
       .pipe(concat('search.js'))
       .pipe(ngAnnotate())
-      //.pipe(uglify())
+      .pipe(uglify())
     .pipe(sourcemaps.write('/maps'))
     .pipe(rename({extname: ".min.js"}))
     .pipe(header(banner, { pkg : pkg } ))

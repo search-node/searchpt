@@ -17,6 +17,128 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     var provider = $injector.get(CONFIG.provider.service);
 
     /**
+     * Encode the query object into a string.
+     *
+     * @param query
+     *  The query object.
+     *
+     * @return string
+     *  The encode string that can be used as hash tag in url.
+     */
+    function encodeSearchQuery(query) {
+      var parts = [];
+
+      // Search text.
+      if (query.hasOwnProperty('text') && query.text.length !== 0) {
+        parts.push('text=' + encodeURIComponent(query.text));
+      }
+
+      // Filters.
+      if (query.hasOwnProperty('filters')) {
+        var filterParts = [];
+        for (var field in query.filters) {
+          var selected = [];
+          for (var filter in query.filters[field]) {
+            if (query.filters[field][filter] === true) {
+              selected.push(filter);
+            }
+          }
+          filterParts.push(field + ':' + selected.join(';'));
+        }
+
+        parts.push('filters=' + encodeURIComponent(filterParts.join('?')));
+      }
+
+      // Interval search.
+      /**
+       * @TOOD: Need to build interval search first.
+       */
+
+      // Pager page.
+      if (query.hasOwnProperty('pager')) {
+        parts.push('pager=' + query.pager.page + ':' + query.pager.size);
+      }
+
+      return parts.join('&');
+    }
+
+    /**
+     * Decode the hash tag string into search query object.
+     *
+     * @param string
+     *  The encode string that can be used as hash tag in url.
+     *
+     * @return obje'
+     *  Search query object.
+     */
+    function decodeSearhQuery(string) {
+      var query = {
+        "text": "",
+      };
+
+      // Get parts.
+      var parts = string.substr(2).split('&');
+      for (var part in parts) {
+        var subparts = parts[part].split('=');
+        switch (subparts[0]) {
+          case 'text':
+            query.text = decodeURIComponent(subparts[1]);
+            break;
+
+          case 'filters':
+            var filters = decodeURIComponent(subparts[1]).split('?');
+            if (filters.length) {
+              query.filters = {};
+              for (var i in filters) {
+                var filter = filters[i].split(':');
+                // Reduce the array values into an object.
+                query.filters[filter[0]] = filter[1].split(';').reduce(function (obj, val, index) {
+                  obj[val] = true;
+                  return obj;
+                }, {});
+              }
+            }
+            break;
+
+          case 'interval':
+            break;
+
+          case 'pager':
+            var pager = subparts[1].split(':');
+            query.pager = {
+              'page': Number(pager[0]),
+              'size': Number(pager[1])
+            };
+            break;
+
+          default:
+            console.error('Decoding of search hash has unknown parts - ' + subparts[0]);
+        }
+      }
+
+      return query;
+    }
+
+    /**
+     * Get basic information about the search state.
+     *
+     * @return object
+     *  The last query form hash tag and default filters.
+     */
+    this.init = function init() {
+      var state = {
+        'filters': this.getRawFilters()
+      };
+
+      var hash = window.location.hash;
+      if (hash.indexOf('text=')) {
+         state.query = decodeSearhQuery(hash);
+      }
+
+      return state;
+    };
+
+    /**
      * Search the provider loaded.
      *
      * This simply forwards the search request to the provider loaded.
@@ -28,6 +150,9 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      *   The search result.
      */
     this.search = function search(query) {
+      // Keep tack of the current URL.
+      window.location.hash = encodeSearchQuery(query);
+
       return provider.search(query);
     };
 
