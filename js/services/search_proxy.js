@@ -28,6 +28,9 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      *   The search result.
      */
     this.search = function search(query) {
+      // Keep tack of the current URL.
+      window.location.hash = query.text;
+
       return provider.search(query);
     };
 

@@ -219,7 +219,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       }
 
       return result;
-    }
+    };
 
     /**
      * Get the list of available filters.
