@@ -72,9 +72,7 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      *  Search query object.
      */
     function decodeSearhQuery(string) {
-      var query = {
-        "text": "",
-      };
+      var query = {};
 
       // Get parts.
       var parts = string.substr(2).split('&');
@@ -131,7 +129,7 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       };
 
       var hash = window.location.hash;
-      if (hash.indexOf('text=')) {
+      if (hash.length > 2) {
          state.query = decodeSearhQuery(hash);
       }
 
