@@ -50,9 +50,9 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       }
 
       // Interval search.
-      /**
-       * @TOOD: Need to build interval search first.
-       */
+      if (query.hasOwnProperty('interval')) {
+        parts.push('interval=' + query.interval.field + ':' + query.interval.from + ':' + query.interval.to);
+      }
 
       // Pager page.
       if (query.hasOwnProperty('pager')) {
@@ -99,6 +99,12 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
             break;
 
           case 'interval':
+            var interval = subparts[1].split(':');
+            query.interval = {
+              'field': interval[0],
+              'from': interval[1],
+              'to': interval[2]
+            };
             break;
 
           case 'pager':

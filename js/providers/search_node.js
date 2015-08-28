@@ -353,9 +353,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             }
           }
 
-          /**
-           * @TODO: Handled more than one filter
-           */
           if (terms[field].length) {
             queryFilter.bool.must.push({ "terms": angular.copy(terms) });
           }
@@ -378,6 +375,18 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         // Get the query.
         var aggs = buildAggregationQuery(CONFIG.provider.filters);
         angular.extend(query, aggs);
+      }
+
+      // Add range/interval search to the query.
+      if (searchQuery.hasOwnProperty('interval')) {
+        var interval = {
+          "range": {}
+        };
+        interval[searchQuery.interval.field] = {
+          "gte": searchQuery.interval.from,
+          "lte": searchQuery.interval.to
+        };
+        query.query.filtered.filter.bool.must.push(interval);
       }
 
       // Create cache key based on the finale search query.
