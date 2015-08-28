@@ -10,7 +10,7 @@
     <h3>Search results <span data-ng-if="hits.hits > 0">({{ hits.hits }})</span></h3>
     <article data-ng-repeat="hit in hits.results">
       <strong>{{ hit.title }}</strong>
-      <p>{{ hit.snippet }}</p>
+      <p data-ng-bind-html="hit.snippet"></p>
       <p><span>Level: </span><span data-ng-repeat="level in hit.levels">{{ level }} </span></p>
       <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
       <hr>
