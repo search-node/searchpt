@@ -6,7 +6,7 @@
 
 // Define the angular applications.
 angular.module('searchBoxApp', ['communicationService', 'searchAppConfig', 'angular-cache']);
-angular.module('searchResultApp', ['communicationService', 'searchAppConfig']);
+angular.module('searchResultApp', ['communicationService', 'searchAppConfig', 'ngSanitize']);
 
 /**
  * When the document is ready bootstrap the two applications.
