@@ -17,6 +17,23 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     var provider = $injector.get(CONFIG.provider.service);
 
     /**
+     * Find the size of given object.
+     *
+     * @return int
+     *   The size of the object or 0 if empty.
+     */
+    function objectSize(obj) {
+      var size = 0;
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          size++;
+        }
+      }
+
+      return size;
+    }
+
+    /**
      * Encode the query object into a string.
      *
      * @param query
@@ -34,7 +51,7 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       }
 
       // Filters.
-      if (query.hasOwnProperty('filters')) {
+      if (query.hasOwnProperty('filters') && objectSize(query.filters) !== 0) {
         var filterParts = [];
         for (var field in query.filters) {
           var selected = [];

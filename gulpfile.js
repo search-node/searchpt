@@ -41,13 +41,14 @@ gulp.task('jshint', function() {
  */
 gulp.task('sass', function () {
   gulp.src(sassPath)
-    .pipe(sass({
-      outputStyle: 'compressed',
-      includePaths: [
-        'bower_components/compass-mixins/lib',
-        'bower_components/foundation/scss'
-      ]
-    }).on('error', sass.logError))
+    .pipe(sourcemaps.init())
+      .pipe(sass({
+        outputStyle: 'compressed',
+        includePaths: [
+          'bower_components/compass-mixins/lib',
+          'bower_components/foundation/scss'
+        ]
+      }).on('error', sass.logError))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('./stylesheets'));
 });
