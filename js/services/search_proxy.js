@@ -174,6 +174,21 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       // Keep tack of the current URL.
       window.location.hash = encodeSearchQuery(query);
 
+      // Force search filters form configuraion (predefined filters).
+      if (CONFIG.provider.hasOwnProperty('force') && CONFIG.provider.force.length) {
+        var forces = CONFIG.provider.force;
+        for (var i in forces) {
+          var force = forces[i];
+          // Check if user have selected filter, if not init it.
+          if (!query.filters.hasOwnProperty(force.field)) {
+            query.filters[force.field] = {};
+          }
+
+          // Insert the forced field value.
+          query.filters[force.field][force.value] = true;
+        }
+      }
+
       return provider.search(query);
     };
 
