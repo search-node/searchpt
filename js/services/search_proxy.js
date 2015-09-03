@@ -17,6 +17,23 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     var provider = $injector.get(CONFIG.provider.service);
 
     /**
+     * Find the size of given object.
+     *
+     * @return int
+     *   The size of the object or 0 if empty.
+     */
+    function objectSize(obj) {
+      var size = 0;
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          size++;
+        }
+      }
+
+      return size;
+    }
+
+    /**
      * Encode the query object into a string.
      *
      * @param query
@@ -34,7 +51,7 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       }
 
       // Filters.
-      if (query.hasOwnProperty('filters')) {
+      if (query.hasOwnProperty('filters') && objectSize(query.filters) !== 0) {
         var filterParts = [];
         for (var field in query.filters) {
           var selected = [];
@@ -43,10 +60,17 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
               selected.push(filter);
             }
           }
-          filterParts.push(field + ':' + selected.join(';'));
+
+          // Only add the filter if filter have selections.
+          if (selected.length) {
+            filterParts.push(field + ':' + selected.join(';'));
+          }
         }
 
-        parts.push('filters=' + encodeURIComponent(filterParts.join('?')));
+        // Only encode filters if any have be selected.
+        if (filterParts.length) {
+          parts.push('filters=' + encodeURIComponent(filterParts.join('?')));
+        }
       }
 
       // Interval search.
@@ -156,6 +180,28 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     this.search = function search(query) {
       // Keep tack of the current URL.
       window.location.hash = encodeSearchQuery(query);
+
+      // Force search filters form configuraion (predefined filters).
+      if (CONFIG.provider.hasOwnProperty('force') && CONFIG.provider.force.length) {
+        // If the query have been loaded form the URL, it may not have any
+        // selected filters, hence no filters on the query object.
+        if (!query.hasOwnProperty('filters')) {
+          query.filters = {};
+        }
+        var forces = CONFIG.provider.force;
+        for (var i in forces) {
+          var force = forces[i];
+          // Check if user have selected filter, if not init it.
+          if (!query.filters.hasOwnProperty(force.field)) {
+            query.filters[force.field] = {};
+          }
+
+          // Insert the forced field values.
+          for (var j in force.values) {
+            query.filters[force.field][force.values[j]] = true;
+          }
+        }
+      }
 
       return provider.search(query);
     };

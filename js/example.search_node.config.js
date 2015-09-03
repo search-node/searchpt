@@ -6,8 +6,7 @@
  */
 angular.module('searchAppConfig', [])
   .constant('CONFIG', {
-    'name' : 'Search prototype',
-    'version': '0.1-alpha1',
+    'id' : 'Search prototype',
     'templates': {
       'box': '/js/views/search.html',
       'result': '/js/views/result.html',
@@ -19,6 +18,10 @@ angular.module('searchAppConfig', [])
       'auth': '/auth.php',
       'index': 'e7df7cd2ca07f4f1ab415d457a6e1c13',
       'fields': ['title', 'body:value'],
+      'force': [{
+        'field': 'field_level',
+        'value': ['5']
+      }],
       'pager': {
         'size': 8,
         'page': 0

@@ -16,14 +16,31 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     var token = null;
 
     // Create cache object.
-    var searchCache = new CacheFactory('searchCache', {
+    var searchCache = new CacheFactory('searchCache' + CONFIG.id, {
       maxAge: configuration.cacheExpire * 1000,
-      deleteOnExpire: 'passive',
+      deleteOnExpire: 'aggressive',
       storageMode: 'localStorage'
     });
 
     // Holder for the latest search query filters.
     var currentFilters;
+
+    /**
+     * Find the size of given object.
+     *
+     * @return int
+     *   The size of the object or 0 if empty.
+     */
+    function objectSize(obj) {
+      var size = 0;
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          size++;
+        }
+      }
+
+      return size;
+    }
 
     /**
      * Load the socket.io library provided by the search node.
@@ -188,9 +205,11 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           };
 
           // Run through counts and update the filter.
-          for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
-            var bucket = aggs[filter.name].buckets[j];
-            results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
+          if (objectSize(aggs) !== 0) {
+            for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
+              var bucket = aggs[filter.name].buckets[j];
+              results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
+            }
           }
         }
       }
