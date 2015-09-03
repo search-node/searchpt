@@ -16,9 +16,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     var token = null;
 
     // Create cache object.
-    var searchCache = new CacheFactory('searchCache', {
+    var searchCache = new CacheFactory('searchCache' + CONFIG.id, {
       maxAge: configuration.cacheExpire * 1000,
-      deleteOnExpire: 'passive',
+      deleteOnExpire: 'aggressive',
       storageMode: 'localStorage'
     });
 
