@@ -21,7 +21,7 @@ angular.module('searchAppConfig', [])
       'fields': ['title', 'body:value'],
       'force': [{
         'field': 'field_level',
-        'value': '5'
+        'value': ['5']
       }],
       'pager': {
         'size': 8,

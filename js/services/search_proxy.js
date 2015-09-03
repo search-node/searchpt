@@ -176,6 +176,11 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
 
       // Force search filters form configuraion (predefined filters).
       if (CONFIG.provider.hasOwnProperty('force') && CONFIG.provider.force.length) {
+        // If the query have been loaded form the URL, it may not have any
+        // selected filters, hence no filters on the query object.
+        if (!query.hasOwnProperty('filters')) {
+          query.filters = {};
+        }
         var forces = CONFIG.provider.force;
         for (var i in forces) {
           var force = forces[i];
@@ -184,8 +189,10 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
             query.filters[force.field] = {};
           }
 
-          // Insert the forced field value.
-          query.filters[force.field][force.value] = true;
+          // Insert the forced field values.
+          for (var j in force.values) {
+            query.filters[force.field][force.values[j]] = true;
+          }
         }
       }
 
