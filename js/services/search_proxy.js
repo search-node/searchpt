@@ -60,10 +60,17 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
               selected.push(filter);
             }
           }
-          filterParts.push(field + ':' + selected.join(';'));
+
+          // Only add the filter if filter have selections.
+          if (selected.length) {
+            filterParts.push(field + ':' + selected.join(';'));
+          }
         }
 
-        parts.push('filters=' + encodeURIComponent(filterParts.join('?')));
+        // Only encode filters if any have be selected.
+        if (filterParts.length) {
+          parts.push('filters=' + encodeURIComponent(filterParts.join('?')));
+        }
       }
 
       // Interval search.
