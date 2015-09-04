@@ -76,9 +76,9 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       // Interval search.
       if (query.hasOwnProperty('intervals') && objectSize(query.intervals) !== 0) {
         var intervalParts = [];
-        for (var i in query.intervals) {
-          var interval = query.intervals[i];
-          intervalParts.push(interval.field + ';' + interval.from + ';' + interval.to);
+        for (var field in query.intervals) {
+          var interval = query.intervals[field];
+          intervalParts.push(field + ';' + interval.from + ';' + interval.to);
         }
         parts.push('intervals=' + encodeURIComponent(intervalParts.join('?')));
       }
@@ -130,14 +130,13 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
           case 'intervals':
             var intervals = decodeURIComponent(subparts[1]).split('?');
             if (intervals.length) {
-              query.intervals = [];
+              query.intervals = {};
               for (var i in intervals) {
                 var interval = intervals[i].split(';');
-                query.intervals.push({
-                  'field': interval[0],
+                query.intervals[interval[0]] = {
                   'from': interval[1],
                   'to': interval[2]
-                });
+                };
               }
             }
             break;
