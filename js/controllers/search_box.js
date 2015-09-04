@@ -53,6 +53,12 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         'filters': {}
       };
 
+      // Check if any intervals have been configured.
+      if (CONFIG.provider.hasOwnProperty('intervals')) {
+        $scope.intervals = CONFIG.provider.intervals;
+        $scope.query.intervals = {};
+      }
+
       // Check if any search query have been located from the hash tag.
       if (state.hasOwnProperty('query')) {
         // Query found in state, so execute that search.
@@ -64,12 +70,6 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         if (CONFIG.provider.hasOwnProperty('pager')) {
           // Add pager information to the search query.
           $scope.query.pager = angular.copy(CONFIG.provider.pager);
-        }
-
-        // Check if any intervals have been configured.
-        if (CONFIG.provider.hasOwnProperty('intervals')) {
-          $scope.intervals = CONFIG.provider.intervals;
-          $scope.query.intervals = {};
         }
 
         // Get filters based on search content (maybe slow).
