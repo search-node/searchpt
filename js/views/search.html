@@ -11,6 +11,21 @@
   <div class="small-2 columns">
     <a href="#" class="button postfix" data-ng-click="searchClicked()">Søg</a>
   </div>
+
+  <!--  intervals -->
+  <div class="row" data-ng-repeat="interval in intervals">
+    <div class="large-2 columns">
+      {{interval}}
+    </div>
+    <div class="large-4 columns">
+      <input type="text" data-ng-model="query.intervals[interval].from">
+    </div>
+    <div class="large-4 columns">
+      <input type="text" data-ng-model="query.intervals[interval].to">
+    </div>
+  </div>
+
+  <!-- Filters -->
   <div class="large-6 columns" data-ng-repeat="(id, filter) in filters">
     <label><strong>{{ filter.name }}</strong></label>
     <span data-ng-repeat="(key, item) in filter.items">
