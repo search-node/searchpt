@@ -2,3 +2,4 @@ js/config.js
 data.json
 .idea/
 build
+node_modules
