@@ -27,6 +27,7 @@ angular.module('searchAppConfig', [])
         'page': 0
       },
       'cacheExpire': 5,
+      'intervals': ['created', 'changed'],
       'filters': [
         {
           'field': 'field_level',

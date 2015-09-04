@@ -74,8 +74,13 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
       }
 
       // Interval search.
-      if (query.hasOwnProperty('interval')) {
-        parts.push('interval=' + query.interval.field + ':' + query.interval.from + ':' + query.interval.to);
+      if (query.hasOwnProperty('intervals') && objectSize(query.intervals) !== 0) {
+        var intervalParts = [];
+        for (var i in query.intervals) {
+          var interval = query.intervals[i];
+          intervalParts.push(interval.field + ';' + interval.from + ';' + interval.to);
+        }
+        parts.push('intervals=' + encodeURIComponent(intervalParts.join('?')));
       }
 
       // Pager page.
@@ -122,13 +127,19 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
             }
             break;
 
-          case 'interval':
-            var interval = subparts[1].split(':');
-            query.interval = {
-              'field': interval[0],
-              'from': interval[1],
-              'to': interval[2]
-            };
+          case 'intervals':
+            var intervals = decodeURIComponent(subparts[1]).split('?');
+            if (intervals.length) {
+              query.intervals = [];
+              for (var i in intervals) {
+                var interval = intervals[i].split(';');
+                query.intervals.push({
+                  'field': interval[0],
+                  'from': interval[1],
+                  'to': interval[2]
+                });
+              }
+            }
             break;
 
           case 'pager':

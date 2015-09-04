@@ -34,6 +34,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       );
     }
 
+    /**
+     * Initials this controller and configure the basic scope.
+     */
     function init() {
       // Get state from pervious searches.
       var state = searchProxy.init();
@@ -63,6 +66,12 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           $scope.query.pager = angular.copy(CONFIG.provider.pager);
         }
 
+        // Check if any intervals have been configured.
+        if (CONFIG.provider.hasOwnProperty('intervals')) {
+          $scope.intervals = CONFIG.provider.intervals;
+          $scope.query.intervals = {};
+        }
+
         // Get filters based on search content (maybe slow).
         $scope.filters = searchProxy.getFilters().then(
           function (filters) {
@@ -76,7 +85,8 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     }
 
     /**
-     * @TODO: Missing description.
+     * Communication lister for pager changes from the search results
+     * application.
      */
     communicatorService.$on('pager', function (event, data) {
       $scope.query.pager = {
@@ -87,7 +97,10 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     });
 
     /**
-     * @TODO: Missing description.
+     * Search click handler.
+     *
+     * Simple wrapper for search that reest the pager before executing the
+     * searh.
      */
     $scope.searchClicked = function searchClicked() {
       // Reset pager.

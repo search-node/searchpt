@@ -397,15 +397,27 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       }
 
       // Add range/interval search to the query.
-      if (searchQuery.hasOwnProperty('interval')) {
-        var interval = {
-          "range": {}
-        };
-        interval[searchQuery.interval.field] = {
-          "gte": searchQuery.interval.from,
-          "lte": searchQuery.interval.to
-        };
-        query.query.filtered.filter.bool.must.push(interval);
+      if (searchQuery.hasOwnProperty('intervals')) {
+        // Check if any filters have been defined.
+        if (!query.query.filtered.hasOwnProperty('filter')) {
+          query.query.filtered.filter = {
+            "bool": {
+              "must": [ ]
+            }
+          };
+        }
+
+        // Loop over the intervals and build range terms.
+        for (var field in searchQuery.intervals) {
+          var interval = {
+            "range": {}
+          };
+          interval.range[field] = {
+            "gte": searchQuery.intervals[field].from,
+            "lte": searchQuery.intervals[field].to
+          };
+          query.query.filtered.filter.bool.must.push(interval);
+        }
       }
 
       // Create cache key based on the finale search query.
