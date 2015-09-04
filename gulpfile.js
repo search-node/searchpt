@@ -1,3 +1,5 @@
+var argv = require('yargs').argv;
+
 var gulp = require('gulp');
 
 // Plugins.
@@ -10,6 +12,7 @@ var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var ngAnnotate = require('gulp-ng-annotate');
 var rename = require('gulp-rename');
+var gulpif = require('gulp-if');
 
 var header = require('gulp-header');
 var pkg = require('./version.json');
@@ -76,7 +79,7 @@ gulp.task('appJs', function () {
     .pipe(sourcemaps.init())
       .pipe(concat('search.js'))
       .pipe(ngAnnotate())
-      .pipe(uglify())
+      .pipe(gulpif(argv.production, uglify()))
     .pipe(sourcemaps.write('/maps'))
     .pipe(rename({extname: ".min.js"}))
     .pipe(header(banner, { pkg : pkg } ))
