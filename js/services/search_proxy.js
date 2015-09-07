@@ -188,6 +188,30 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      *   The search result.
      */
     this.search = function search(query) {
+      // Ensure that intervals is set and have both from and to values.
+      if (CONFIG.provider.hasOwnProperty('intervals') && CONFIG.provider.intervals.length) {
+        if (query.hasOwnProperty('intervals')) {
+          for (var field in query.intervals) {
+            // Check if both from and to exists.
+            if ((query.intervals[field].hasOwnProperty('from') && query.intervals[field].from !== '') &&
+                (query.intervals[field].hasOwnProperty('to') && query.intervals[field].to !== '')) {
+              // It did
+              continue;
+            }
+            else {
+              // Remove invalided interval.
+              delete query.intervals[field];
+            }
+          }
+        }
+      }
+      else {
+        // Configuration don't have intervals.
+        if (query.hasOwnProperty('intervals')) {
+          delete query.intervals;
+        }
+      }
+
       // Keep tack of the current URL.
       window.location.hash = encodeSearchQuery(query);
 
