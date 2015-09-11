@@ -187,7 +187,11 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      * @returns {Number|*|Object}
      *   The search result.
      */
-    this.search = function search(query) {
+    this.search = function search(searchQuery) {
+      // Ensure that forced fields and other changes are not refelected in the
+      // UI.
+      var query = angular.copy(searchQuery);
+
       // Ensure that intervals is set and have both from and to values.
       if (CONFIG.provider.hasOwnProperty('intervals') && CONFIG.provider.intervals.length) {
         if (query.hasOwnProperty('intervals')) {
