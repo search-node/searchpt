@@ -208,7 +208,12 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           if (objectSize(aggs) !== 0) {
             for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
               var bucket = aggs[filter.name].buckets[j];
-              results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
+              if (results[filter.field].items.hasOwnProperty(bucket.key)) {
+                results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
+              }
+              else {
+                console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key)
+              }
             }
           }
         }
