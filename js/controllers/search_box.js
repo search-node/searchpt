@@ -73,7 +73,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         }
 
         // Get filters based on search content (maybe slow).
-        $scope.filters = searchProxy.getFilters().then(
+        searchProxy.getFilters().then(
           function (filters) {
             $scope.filters = filters;
           },
