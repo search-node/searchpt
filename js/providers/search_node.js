@@ -212,7 +212,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
                 results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
               }
               else {
-                console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key)
+                console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key);
               }
             }
           }
@@ -225,7 +225,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * Get the list of available filters not parsed with search results.
      *
      * @return array
-     *  The filters from the confiuration.
+     *  The filters from the configuration.
      */
     this.getRawFilters = function getRawFilters() {
       var result = {};
@@ -339,10 +339,21 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       // The analyser ensures that we match the who text string sent not part
       // of.
       if (searchQuery.text !== undefined && searchQuery.text !== '') {
+        var fields = configuration.fields;
+        // Check if boost exist for the fields.
+        if (configuration.hasOwnProperty('boost') && objectSize(configuration.boost)) {
+          // Add boost to fields.
+          for (var i in fields) {
+            if (configuration.boost.hasOwnProperty(fields[i])) {
+              fields[i] = fields[i] + '^' + configuration.boost[fields[i]];
+            }
+          }
+        }
+
         query.query.filtered.query = {
           "multi_match": {
             "query": searchQuery.text,
-            "fields": configuration.fields,
+            "fields": fields,
             "analyzer": 'string_search'
           }
         };
