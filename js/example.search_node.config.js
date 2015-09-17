@@ -7,6 +7,7 @@
 angular.module('searchAppConfig', [])
   .constant('CONFIG', {
     'id' : 'Search prototype',
+    'initalQueryText': 'test',
     'templates': {
       'box': '/js/views/search.html',
       'result': '/js/views/result.html',
