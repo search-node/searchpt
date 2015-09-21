@@ -72,15 +72,24 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           $scope.query.pager = angular.copy(CONFIG.provider.pager);
         }
 
-        // Get filters based on search content (maybe slow).
-        searchProxy.getFilters().then(
-          function (filters) {
-            $scope.filters = filters;
-          },
-          function (reason) {
-            console.error(reason);
-          }
-        );
+        // Check if an inital search should be executed.
+        if (CONFIG.hasOwnProperty('initialQueryText')) {
+          $scope.query.text = angular.copy(CONFIG.initialQueryText);
+
+          // Execture the search.
+          search();
+        }
+        else {
+          // Get filters based on search content (maybe slow).
+          searchProxy.getFilters().then(
+            function (filters) {
+              $scope.filters = filters;
+            },
+            function (reason) {
+              console.error(reason);
+            }
+          );
+        }
       }
     }
 

@@ -1,12 +1,11 @@
 /**
  * @file
  * Set application configuration.
- *
- * @TODO: Load configuration from JSON file.
  */
 angular.module('searchAppConfig', [])
   .constant('CONFIG', {
     'id' : 'Search prototype',
+    'initialQueryText': '',
     'templates': {
       'box': '/js/views/search.html',
       'result': '/js/views/result.html',
@@ -18,46 +17,30 @@ angular.module('searchAppConfig', [])
       'auth': '/auth.php',
       'index': 'e7df7cd2ca07f4f1ab415d457a6e1c13',
       'fields': ['title', 'body:value'],
-      'force': [{
-        'field': 'field_level',
-        'value': ['5']
-      }],
       'pager': {
         'size': 8,
         'page': 0
       },
       'cacheExpire': 5,
-      'intervals': ['created', 'changed'],
+      'intervals': ['created'],
       'filters': [
         {
           'field': 'field_level',
           'name': 'Level',
           'type': 'and',
           'terms': {
-            "1": {
-              'value': '1'
+            "First": {
+              'value': 'First'
             },
-            "2": {
-              'value': '2'
+            "Second": {
+              'value': 'Second'
             },
-            "3": {
-              'value': '3'
+            "Third": {
+              'value': 'Third'
             },
-            "4": {
-              'value': '4'
+            "Fourth": {
+              'value': 'Fourth'
             },
-            "5": {
-              'value': '5'
-            },
-            "6": {
-              'value': '6'
-            },
-            "7": {
-              'value': '7'
-            },
-            "8": {
-              'value': '8'
-            }
           }
         },
         {
@@ -68,15 +51,9 @@ angular.module('searchAppConfig', [])
             "Angular": {
               'value': 'Angular'
             },
-            "Apache": {
-              'value': 'Apache'
-            },
             "Javascript": {
               'value': 'Javascript'
             },
-            "PHP": {
-              'value': 'PHP'
-            }
           }
         }
       ]
