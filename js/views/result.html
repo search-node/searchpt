@@ -10,9 +10,10 @@
     <h3>Search results <span data-ng-if="hits.hits > 0">({{ hits.hits }})</span></h3>
     <article data-ng-repeat="hit in hits.results">
       <strong>{{ hit.title }}</strong>
-      <p data-ng-bind-html="hit.snippet"></p>
-      <p><span>Level: </span><span data-ng-repeat="level in hit.levels">{{ level }} </span></p>
-      <span data-ng-repeat="tag in hit.tags" class="label">{{ tag }}</span>
+      <p data-ng-bind-html="hit['body:value']"></p>
+      <p><strong>Level: </strong><span data-ng-repeat="level in hit.field_level track by $index">{{ level }} </span></p>
+      <p><strong>Technology: </strong><span data-ng-repeat="level in hit.field_teknologi track by $index">{{ level }} </span></p>
+      <p><strong>Created:</strong><span>{{ hit.created * 1000 | date:'dd/MM/yy HH:mm:ss' }}</span></p>
       <hr>
     </article>
 
