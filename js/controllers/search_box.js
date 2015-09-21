@@ -73,8 +73,8 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         }
 
         // Check if an inital search should be executed.
-        if (CONFIG.hasOwnProperty('initalQueryText')) {
-          $scope.query.text = angular.copy(CONFIG.initalQueryText);
+        if (CONFIG.hasOwnProperty('initialQueryText')) {
+          $scope.query.text = angular.copy(CONFIG.initialQueryText);
 
           // Execture the search.
           search();
