@@ -278,6 +278,10 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             // Get the query.
             var query = buildAggregationQuery(filters);
 
+            /**
+             * @TODO: Added forced fields and other search options.
+             */
+
             // Send the request to search node.
             connect().then(function () {
               socket.emit('count', query);

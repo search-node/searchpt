@@ -13,6 +13,7 @@ var uglify = require('gulp-uglify');
 var ngAnnotate = require('gulp-ng-annotate');
 var rename = require('gulp-rename');
 var gulpif = require('gulp-if');
+var jsonlint = require("gulp-jsonlint");
 
 var header = require('gulp-header');
 var pkg = require('./version.json');
@@ -27,6 +28,7 @@ var banner = ['/**',
 var jsPath = ['./js/search.js', './js/*/*.js', '!./js/assets/*'];
 var jsAssets = ['./js/assets/*.min.js', '!./js/assets/angular.js', '!./js/assets/angular.min.js'];
 var sassPath = './scss/*.scss';
+var jsonPath = [ './version.json' ]
 
 var buildDir = './build';
 
@@ -62,6 +64,7 @@ gulp.task('sass', function () {
 gulp.task('watch', function() {
   gulp.watch(jsPath, ['jshint']);
   gulp.watch(sassPath, ['sass']);
+  gulp.watch(jsonPath, ['json']);
 });
 
 /**
@@ -96,6 +99,14 @@ gulp.task('assetsJs', function () {
     .pipe(gulp.dest(buildDir))
 });
 
+/**
+ * Check json files.
+ */
+gulp.task('json', function() {
+  gulp.src(jsonPath)
+    .pipe(jsonlint())
+    .pipe(jsonlint.reporter());
+});
 
 // Tasks to compile sass and watch js file.
 gulp.task('default', ['sass', 'watch']);
