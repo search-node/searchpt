@@ -6,7 +6,7 @@
 -->
 <div class="row collapse">
   <div class="small-10 columns">
-    <input type="text" placeholder="Søg, f.eks. musik, kursus" data-code="13" data-key-code="searchClicked()" data-ng-model="query.text">
+    <input type="text" placeholder="Søg, f.eks. musik, kursus" data-code="13" data-ng-model-options="{ debounce: 1000 }" data-key-code="searchClicked()" data-ng-model="query.text">
   </div>
   <div class="small-2 columns">
     <div class="button postfix" data-ng-click="searchClicked()">Søg</div>

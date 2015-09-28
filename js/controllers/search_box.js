@@ -91,6 +91,8 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           );
         }
       }
+
+      $scope.$watch('query.text');
     }
 
     /**
@@ -119,6 +121,20 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
 
       search();
     };
+
+    /**
+     * Handles auto complete in the search box.
+     */
+    $scope.autocomplete = function autocomplete() {
+      searchProxy.autocomplete($scope.query).then(
+        function (strings) {
+          console.log(strings);
+        },
+        function (reason) {
+          console.error(reason);
+        }
+      );
+    }
 
     // Get set show on the road.
     init();

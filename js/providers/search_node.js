@@ -230,8 +230,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     this.getRawFilters = function getRawFilters() {
       var result = {};
 
-      if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters;
+      if (configuration.hasOwnProperty('filters')) {
+        var filters = configuration.filters;
         for (var i = 0; i < filters.length; i++) {
 
           // Set basic filter with counts.
@@ -259,8 +259,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       var deferred = $q.defer();
 
       // Get filters from configuration.
-      if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters;
+      if (configuration.hasOwnProperty('filters')) {
+        var filters = configuration.filters;
 
         // If no search have been executed yet, load the default filters across
         // all indexed data.
@@ -317,6 +317,29 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       return deferred.promise;
     };
+
+    this.autocomplete = function autocomplete(searchQuery) {
+      var deferred = $q.defer();
+
+      if (CONFIG.hasOwnProperty('autocomplete')) {
+        var query = {
+          "index": configuration.index,
+          "query": {
+            "filtered": {
+              "query" : {
+                "multi_match": {
+                  "query": searchQuery.text,
+                  "fields": CONFIG.autocomplete.fields,
+                  "analyzer": 'string_search'
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return deferred.promise();
+    }
 
     /**
      * Execute search query.
@@ -457,7 +480,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         connect().then(function () {
           socket.emit('search', query);
           socket.once('result', function (hits) {
-
             // Update cache filters cache.
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.

@@ -261,5 +261,14 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     this.getFilters = function getFilters() {
       return provider.getFilters();
     };
+
+    /**
+     * Get auto complete results.
+     */
+    this.autocomplete = function autocomplete(query) {
+      if (CONFIG.hasOwnProperty('autocomplete')) {
+        return provider.autocomplete(query);
+      }
+    }
   }
 ]);
