@@ -28,7 +28,6 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
 
     $scope.hits = [];
     communicatorService.$on('hits', function (event, data) {
-      console.log(data.hits);
       $scope.$apply(function() {
         $scope.hits = data.hits;
       });
