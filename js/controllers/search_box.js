@@ -98,15 +98,30 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     }
 
     /**
-     * Communication lister for pager changes from the search results
-     * application.
+     * Updated search based on pager.
      */
-    communicatorService.$on('pager', function (event, data) {
+    function pagerUpdated(data) {
       $scope.query.pager = {
         'size': data.size,
         'page': data.page
       };
       search();
+    }
+
+    /**
+     * Communication lister for pager changes from the search results
+     * application.
+     */
+    communicatorService.$on('pager', function (event, data) {
+      var phase = this.$root.$$phase;
+      if(phase == '$apply' || phase == '$digest') {
+        pagerUpdated(data);
+      }
+      else {
+        $scope.$apply(function () {
+          pagerUpdated(data);
+        });
+      }
     });
 
     /**
