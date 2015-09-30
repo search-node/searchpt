@@ -12,6 +12,9 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     // Set template to use.
     $scope.template = CONFIG.templates.result;
 
+    // Scope variable that can be used to make indications on the current
+    // process. E.g display spinner.
+    $scope.searching = false;
 
     // Check if the provider supports an pager.
     if (CONFIG.provider.hasOwnProperty('pager')) {
@@ -26,17 +29,28 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
       communicatorService.$emit('pager', $scope.pager);
     };
 
+    /**
+     * Hanled search results hits from the search box application.
+     */
     $scope.hits = [];
     communicatorService.$on('hits', function (event, data) {
-      $scope.$apply(function() {
-        $scope.hits = data.hits;
-      });
+      $scope.hits = data.hits;
+
+      $scope.searching = false;
     });
 
+    /**
+     * Hanled searching message, send when search is called.
+     */
+    communicatorService.$on('searching', function (event, data) {
+      $scope.searching = true;
+    });
+
+    /**
+     * Handled pager updates.
+     */
     communicatorService.$on('pager', function (event, data) {
-      $scope.$apply(function() {
-        $scope.pager = data;
-      });
+      $scope.pager = data;
     });
   }
 ]);
