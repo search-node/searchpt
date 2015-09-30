@@ -34,23 +34,47 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
      */
     $scope.hits = [];
     communicatorService.$on('hits', function (event, data) {
-      $scope.hits = data.hits;
-
-      $scope.searching = false;
+      var phase = this.$root.$$phase;
+      if(phase == '$apply' || phase == '$digest') {
+        $scope.hits = data.hits;
+        $scope.searching = false;
+      }
+      else {
+        $scope.$apply(function () {
+          $scope.hits = data.hits;
+          $scope.searching = false;
+        });
+      }
     });
 
     /**
      * Hanled searching message, send when search is called.
      */
     communicatorService.$on('searching', function (event, data) {
-      $scope.searching = true;
+      var phase = this.$root.$$phase;
+      if(phase == '$apply' || phase == '$digest') {
+        $scope.searching = true;
+      }
+      else {
+        $scope.$apply(function () {
+          $scope.searching = true;
+        });
+      }
     });
 
     /**
      * Handled pager updates.
      */
     communicatorService.$on('pager', function (event, data) {
-      $scope.pager = data;
+      var phase = this.$root.$$phase;
+      if(phase == '$apply' || phase == '$digest') {
+        $scope.pager = data;
+      }
+      else {
+        $scope.$apply(function () {
+          $scope.pager = data;
+        });
+      }
     });
   }
 ]);
