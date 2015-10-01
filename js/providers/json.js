@@ -80,7 +80,7 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$q', '$http',
      * @returns {Array}
      *   The hits found.
      */
-    this.search = function query(query) {
+    this.search = function search(query) {
       var self = this;
       var hits = angular.copy(data);
 
