@@ -440,6 +440,67 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         }
       }
 
+      // Add date interval search.
+      if (searchQuery.hasOwnProperty('dates')) {
+        // Check if any filters have been defined.
+        if (!query.query.filtered.hasOwnProperty('filter')) {
+          query.query.filtered.filter = {
+            "bool": {
+              "should": [ ]
+            }
+          };
+        }
+        else {
+          query.query.filtered.filter.bool.should = [];
+        }
+
+        // Loop over the intervals and build range terms.
+        for (var field in searchQuery.dates) {
+          var config = configuration.dates[field];
+          var template = {
+            "bool": {
+              "must": [
+                {
+                  "range": {}
+                },
+                {
+                  "range": {}
+                }
+              ]
+            }
+          };
+
+          // Overlap start of the interval.
+          template.bool.must[0].range[config.from] = {
+            "lte": searchQuery.dates[field].from
+          };
+          template.bool.must[1].range[config.to] = {
+            "gt": searchQuery.dates[field].from
+          };
+          query.query.filtered.filter.bool.should.push(angular.copy(template));
+
+          // Overlap end of the interval.
+          template.bool.must[0].range[config.from] = {
+            "lt": searchQuery.dates[field].to
+          };
+          template.bool.must[1].range[config.to] = {
+            "gte": searchQuery.dates[field].to
+          };
+          query.query.filtered.filter.bool.should.push(angular.copy(template));
+
+          // Overlap both endes of the interval.
+          template.bool.must[0].range[config.from] = {
+            "gte": searchQuery.dates[field].from
+          };
+          template.bool.must[1].range[config.to] = {
+            "lte": searchQuery.dates[field].to
+          };
+          query.query.filtered.filter.bool.should.push(angular.copy(template));
+        }
+      }
+
+      console.log(JSON.stringify(query));
+
       // Create cache key based on the finale search query.
       var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
 

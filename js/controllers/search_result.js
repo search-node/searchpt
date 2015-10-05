@@ -35,7 +35,7 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     $scope.hits = [];
     communicatorService.$on('hits', function (event, data) {
       var phase = this.$root.$$phase;
-      if(phase == '$apply' || phase == '$digest') {
+      if (phase === '$apply' || phase === '$digest') {
         $scope.hits = data.hits;
         $scope.searching = false;
       }
@@ -52,7 +52,7 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
      */
     communicatorService.$on('searching', function (event, data) {
       var phase = this.$root.$$phase;
-      if(phase == '$apply' || phase == '$digest') {
+      if (phase === '$apply' || phase === '$digest') {
         $scope.searching = true;
       }
       else {
@@ -67,7 +67,7 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
      */
     communicatorService.$on('pager', function (event, data) {
       var phase = this.$root.$$phase;
-      if(phase == '$apply' || phase == '$digest') {
+      if (phase === '$apply' || phase === '$digest') {
         $scope.pager = data;
       }
       else {

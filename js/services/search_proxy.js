@@ -83,6 +83,18 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
         parts.push('intervals=' + encodeURIComponent(intervalParts.join('?')));
       }
 
+      // Date search.
+      if (query.hasOwnProperty('dates') && objectSize(query.dates) !== 0) {
+        // @TODO: This is the same as for intervals. Refactor into function or
+        // loop over type.
+        var dateParts = [];
+        for (var field in query.dates) {
+            var date = query.dates[field];
+          dateParts.push(field + ';' + date.from + ';' + date.to);
+        }
+        parts.push('dates=' + encodeURIComponent(dateParts.join('?')));
+      }
+
       // Pager page.
       if (query.hasOwnProperty('pager')) {
         parts.push('pager=' + query.pager.page + ':' + query.pager.size);
@@ -136,6 +148,21 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
                 query.intervals[interval[0]] = {
                   'from': interval[1],
                   'to': interval[2]
+                };
+              }
+            }
+            break;
+
+          // @TODO: This is the same as for intervals. Refactor into function.
+          case 'dates':
+            var dates = decodeURIComponent(subparts[1]).split('?');
+            if (dates.length) {
+              query.dates = {};
+              for (var i in dates) {
+                var date = dates[i].split(';');
+                query.dates[date[0]] = {
+                  'from': date[1],
+                  'to': date[2]
                 };
               }
             }
