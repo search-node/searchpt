@@ -123,7 +123,7 @@ angular.module('searchBoxApp').service('jsonProvider', ['CONFIG', '$q', '$http',
       });
 
       // This may seem strange, but it's to keep up with the way search node
-      // works. So it makes sens to return an resolve the promise just after
+      // works. So it makes sense to return and resolve the promise just after
       // each other.
       deferred.resolve({
         'hits': hits.length,

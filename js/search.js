@@ -11,7 +11,7 @@ angular.module('searchResultApp', ['communicationService', 'searchAppConfig', 'n
 /**
  * When the document is ready bootstrap the two applications.
  */
-angular.element(document).ready(function() {
+angular.element(document).ready(function ready() {
   "use strict";
 
   // Bootstrap the search result area. This has to be booted first to ensure
@@ -20,10 +20,16 @@ angular.element(document).ready(function() {
   if (result) {
     angular.bootstrap(result, ['searchResultApp']);
   }
+  else {
+    console.error('Unable to bootstrap searchResultApp. Missing HTML tag with id "searchResultApp"');
+  }
 
   // Bootstrap search box.
   var box = document.getElementById("searchBoxApp");
   if (box) {
     angular.bootstrap(box, ['searchBoxApp']);
+  }
+  else {
+    console.error('Unable to bootstrap searchBoxApp. Missing HTML tag with id "searchBoxApp"');
   }
 });

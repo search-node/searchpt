@@ -7,9 +7,9 @@
  */
 
 /**
- * Search proxy is used to send search requests to the configured provide.
+ * Search proxy is used to send search requests to the configured provider.
  */
-angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorService', '$injector',
+angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communicatorService', '$injector',
   function (CONFIG, communicatorService, $injector) {
     'use strict';
 
@@ -18,6 +18,8 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
 
     /**
      * Find the size of given object.
+     *
+     * @TODO: Review - Size: as in number of properties? Maybe change naming?
      *
      * @return int
      *   The size of the object or 0 if empty.
@@ -37,10 +39,10 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      * Encode the query object into a string.
      *
      * @param query
-     *  The query object.
+     *   The query object.
      *
      * @return string
-     *  The encode string that can be used as hash tag in url.
+     *   The encoded string that can been used as hash tag in url.
      */
     function encodeSearchQuery(query) {
       var parts = [];
@@ -107,10 +109,10 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      * Decode the hash tag string into search query object.
      *
      * @param string
-     *  The encode string that can be used as hash tag in url.
+     *   The encode string that can be used as hash tag in url.
      *
-     * @return obje'
-     *  Search query object.
+     * @return object
+     *   Search query object.
      */
     function decodeSearhQuery(string) {
       var query = {};
@@ -208,51 +210,50 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
      *
      * This simply forwards the search request to the provider loaded.
      *
-     * @param query
+     * @param searchQuery
      *   The search query.
      *
      * @returns {Number|*|Object}
      *   The search result.
      */
     this.search = function search(searchQuery) {
-      // Ensure that forced fields and other changes are not refelected in the
+      // Ensure that forced fields and other changes are not reflected in the
       // UI.
       var query = angular.copy(searchQuery);
 
-      // Ensure that intervals is set and have both from and to values.
+      // Ensure that intervals are set in the configuration and have both from
+      // and to values.
       if (CONFIG.provider.hasOwnProperty('intervals') && CONFIG.provider.intervals.length) {
         if (query.hasOwnProperty('intervals')) {
           for (var field in query.intervals) {
             // Check if both from and to exists.
-            if ((query.intervals[field].hasOwnProperty('from') && query.intervals[field].from !== '') &&
-                (query.intervals[field].hasOwnProperty('to') && query.intervals[field].to !== '')) {
-              // It did
-              continue;
-            }
-            else {
-              // Remove invalided interval.
+            // @TODO: Review - This can be flipped to avoid the "empty" if - continue does nothing :)
+            if (!(query.intervals[field].hasOwnProperty('from') && query.intervals[field].from !== '') &&
+                !(query.intervals[field].hasOwnProperty('to') && query.intervals[field].to !== '')) {
+              // Remove invalidated interval.
               delete query.intervals[field];
             }
           }
         }
       }
       else {
-        // Configuration don't have intervals.
+        // Configuration does not have intervals.
         if (query.hasOwnProperty('intervals')) {
           delete query.intervals;
         }
       }
 
-      // Keep tack of the current URL.
+      // Keep track of the current URL.
       window.location.hash = encodeSearchQuery(query);
 
-      // Force search filters form configuraion (predefined filters).
+      // Force search filters form configuration (predefined filters).
       if (CONFIG.provider.hasOwnProperty('force') && CONFIG.provider.force.length) {
-        // If the query have been loaded form the URL, it may not have any
+        // If the query has been loaded form the URL, it may not have any
         // selected filters, hence no filters on the query object.
         if (!query.hasOwnProperty('filters')) {
           query.filters = {};
         }
+
         var forces = CONFIG.provider.force;
         for (var i in forces) {
           var force = forces[i];
@@ -272,7 +273,7 @@ angular.module('searchBoxApp').service('searchProxy', ['CONFIG', 'communicatorSe
     };
 
     /**
-     * Get filters provided by configuraion.
+     * Get filters provided by configuration.
      *
      * @returns json
      */

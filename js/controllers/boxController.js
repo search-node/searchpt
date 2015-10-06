@@ -5,8 +5,8 @@
  * It controls the search box and filters.
  */
 
-angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communicatorService', 'searchProxy', '$scope',
-  function (CONFIG, communicatorService, searchProxy, $scope) {
+angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communicatorService', 'searchProxyService', '$scope',
+  function (CONFIG, communicatorService, searchProxyService, $scope) {
     'use strict';
 
     /**
@@ -17,10 +17,10 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       communicatorService.$emit('searching', {});
 
       // Start the search request.
-      searchProxy.search($scope.query).then(
+      searchProxyService.search($scope.query).then(
         function (data) {
           // Updated filters.
-          searchProxy.getFilters().then(
+          searchProxyService.getFilters().then(
             function (filters) {
               $scope.filters = filters;
             },
@@ -30,7 +30,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           );
 
           // Send results.
-          communicatorService.$emit('hits', {"hits" : data});
+          communicatorService.$emit('hits', {"hits": data});
         },
         function (reason) {
           console.error(reason);
@@ -39,11 +39,12 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     }
 
     /**
-     * Initials this controller and configure the basic scope.
+     * Initialize the controller and configure the basic scope.
      */
     function init() {
-      // Get state from pervious searches.
-      var state = searchProxy.init();
+      // Get state from previous search.
+      // @TODO: Review - should be called something else than init?: getState().
+      var state = searchProxyService.init();
 
       // Get filters.
       $scope.filters = state.filters;
@@ -91,7 +92,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         }
         else {
           // Get filters based on search content (maybe slow).
-          searchProxy.getFilters().then(
+          searchProxyServiceService.getFilters().then(
             function (filters) {
               $scope.filters = filters;
             },
@@ -115,7 +116,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     }
 
     /**
-     * Communication lister for pager changes from the search results
+     * Communication listener for pager changes from the search results
      * application.
      */
     communicatorService.$on('pager', function (event, data) {
@@ -133,8 +134,8 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     /**
      * Search click handler.
      *
-     * Simple wrapper for search that reest the pager before executing the
-     * searh.
+     * Simple wrapper for search that resets the pager before executing the
+     * search.
      */
     $scope.searchClicked = function searchClicked() {
       // Reset pager.
@@ -145,7 +146,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       search();
     };
 
-    // Get set show on the road.
+    // Get the show on the road.
     init();
   }
 ]);

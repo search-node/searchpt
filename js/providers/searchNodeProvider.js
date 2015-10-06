@@ -28,6 +28,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     /**
      * Find the size of given object.
      *
+     * @TODO: Review - Size: as in number of properties? Maybe change naming?
+     *
      * @return int
      *   The size of the object or 0 if empty.
      */
@@ -59,7 +61,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
         // Add event handlers for the library loaded.
         if (script.readyState) {
-          // Handle internet explore.
+          // Handle Internet Explore.
           script.onreadystatechange = function () {
             if (script.readyState === "loaded" || script.readyState === "complete") {
               script.onreadystatechange = null;
@@ -90,7 +92,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * Connect to the web-socket.
      *
      * @param deferred
-     *   The is a deferred object that should be resolved on connection.
+     *   The deferred object that should be resolved on connection.
      */
     function getSocket(deferred) {
       // Load the socket library.
@@ -116,8 +118,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         socket.on('disconnect', function (reason) {
           // @todo: re-connection is automatically handled by socket.io library,
           // but we might need to stop sending request until reconnection or the
-          // request will be queued and send all at once... which could give some
-          // strange side effects in the application if not handled.
+          // request will be queued and sent all at once... which could give
+          // some strange side effects in the application if not handled.
         });
       });
     }
@@ -126,7 +128,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * Create the connection to the server.
      *
      * @return {promise}
-     *   An promise is return that will be resolved on connection.
+     *   A promise is return that will be resolved on connection.
      */
     function connect() {
       // Try to connect to the server if not already connected.
@@ -163,7 +165,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     function buildAggregationQuery(filters) {
       // Basic aggregation query.
       var query = {
-        'aggs': {}
+        "aggs": {}
       };
 
       // Extend query with filter fields.
@@ -171,7 +173,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         var filter = filters[i];
         query.aggs[filter.name] = {
           "terms": {
-            'field': filter.field
+            "field": filter.field,
+            "size": 0
           }
         };
       }
@@ -224,7 +227,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     /**
      * Get the list of available filters not parsed with search results.
      *
-     * @return array
+     * @return object
      *  The filters from the configuration.
      */
     this.getRawFilters = function getRawFilters() {
@@ -249,8 +252,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * Get the list of available filters.
      *
      * @PLAN:
-     *   Check if latest search return aggregations, if not use the configuration
-     *   to search the get all available aggregations.
+     *   Check if latest search returned aggregations, if not use the
+     *   configuration to search the get all available aggregations.
      *
      *   Merge it with configuration to ensure that all possible filters are
      *   displayed with count.
@@ -262,11 +265,12 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (CONFIG.provider.hasOwnProperty('filters')) {
         var filters = CONFIG.provider.filters;
 
-        // If no search have been executed yet, load the default filters across
+        // If no search has been executed yet, load the default filters across
         // all indexed data.
         if (currentFilters === undefined) {
           // Check if filters are cached.
           var cachedFilters = searchCache.get('filters');
+
           if (cachedFilters !== undefined) {
             // Store current filters.
             currentFilters = cachedFilters;
@@ -288,7 +292,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
               socket.once('counts', function (counts) {
                 var results = parseFilters(counts);
 
-                // Store initials filters in cache.
+                // Store initial filters in cache.
                 searchCache.put('filters', results);
 
                 // Store current filters.
@@ -327,12 +331,12 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     this.search = function search(searchQuery) {
       var deferred = $q.defer();
 
-      // Build default match all search query.
+      // Build default "match all" search query.
       var query = {
         "index": configuration.index,
         "query": {
           "filtered": {
-            "query" : {
+            "query": {
               "match_all": {}
             }
           }
@@ -368,9 +372,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         var filters = angular.copy(searchQuery.filters);
 
         // Build query filter.
-        var queryFilter =  {
+        var queryFilter = {
           "bool": {
-            "must": [ ]
+            "must": []
           }
         };
 
@@ -381,19 +385,19 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
            *        type?
            */
           var terms = {
-            "execution" : "and"
+            "execution": "and"
           };
 
           terms[field] = [];
           for (var term in filters[field]) {
-            // Check the the term is "true" selected.
+            // Check the the term is "true", hence is selected.
             if (filters[field][term]) {
               terms[field].push(term);
             }
           }
 
           if (terms[field].length) {
-            queryFilter.bool.must.push({ "terms": angular.copy(terms) });
+            queryFilter.bool.must.push({ "terms": terms });
           }
         }
 
@@ -422,7 +426,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         if (!query.query.filtered.hasOwnProperty('filter')) {
           query.query.filtered.filter = {
             "bool": {
-              "must": [ ]
+              "must": []
             }
           };
         }
@@ -499,8 +503,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         }
       }
 
-      console.log(JSON.stringify(query));
-
       // Create cache key based on the finale search query.
       var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
 
@@ -518,8 +520,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         connect().then(function () {
           socket.emit('search', query);
           socket.once('result', function (hits) {
-
-            // Update cache filters cache.
+            // Update cache filters cache, based on the current search result.
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.
               currentFilters = parseFilters(angular.copy(hits.aggs));

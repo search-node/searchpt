@@ -1,8 +1,6 @@
 /**
  * @file
  * Set application configuration.
- *
- * @TODO: Load configuration from JSON file.
  */
 angular.module('searchAppConfig', [])
   .constant('CONFIG', {

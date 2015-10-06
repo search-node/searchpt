@@ -5,6 +5,8 @@
 
 /**
  * Paging directive.
+ *
+ * @TODO: Review - maybe use the newer version from https://github.com/aroskanalen/admin/tree/development/web/app/shared/elements/pager
  */
 angular.module('searchResultApp').directive('searchPager', ['CONFIG',
   function (CONFIG) {
@@ -40,13 +42,12 @@ angular.module('searchResultApp').directive('searchPager', ['CONFIG',
           }
         };
 
-        // Keep an any on changes in number of hits.
+        // Keep a watch on changes in number of hits.
         $scope.$watch('hits', function (hits) {
-          var hits = $scope.hits.hits;
           var pages = [];
           $scope.pager.max = 0;
-          if (hits > $scope.pager.size) {
-            $scope.pager.max = Math.ceil(hits / $scope.pager.size);
+          if (hits.hits > $scope.pager.size) {
+            $scope.pager.max = Math.ceil(hits.hits / $scope.pager.size);
             for (var i = 0; i < $scope.pager.max; i++) {
               pages.push(i);
             }
