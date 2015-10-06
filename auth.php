@@ -11,17 +11,21 @@
  * Authenticates against the host with the apiKey
  *
  * @param $host
+ *   The host to connect to https://localhost.
  * @param $apiKey
+ *   The API-key to authenticate with.
  *
  * @return array
+ *   With the connection status and auth token.
  */
 function authenticate($host, $apiKey) {
   // Build query.
   $ch = curl_init($host . '/authenticate');
 
-  // SSL fix (self signed).
+  // SSL fix  for self signed.
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+
   curl_setopt($ch, CURLOPT_POST, TRUE);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
   curl_setopt($ch, CURLOPT_POSTFIELDS,

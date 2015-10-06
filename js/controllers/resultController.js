@@ -2,7 +2,7 @@
  * @file
  * This is the controller for the search result application.
  *
- * It simply updated the view when hits have been received.
+ * It simply updates the view when hits have been received.
  */
 
 angular.module('searchResultApp').controller('resultController', ['CONFIG', 'communicatorService', '$scope',
@@ -33,7 +33,7 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
      * Hanled search results hits from the search box application.
      */
     $scope.hits = [];
-    communicatorService.$on('hits', function (event, data) {
+    communicatorService.$on('hits', function onHits(event, data) {
       var phase = this.$root.$$phase;
       if (phase === '$apply' || phase === '$digest') {
         $scope.hits = data.hits;
@@ -50,7 +50,7 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     /**
      * Hanled searching message, send when search is called.
      */
-    communicatorService.$on('searching', function (event, data) {
+    communicatorService.$on('searching', function onSearching(event, data) {
       var phase = this.$root.$$phase;
       if (phase === '$apply' || phase === '$digest') {
         $scope.searching = true;
@@ -65,7 +65,7 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
     /**
      * Handled pager updates.
      */
-    communicatorService.$on('pager', function (event, data) {
+    communicatorService.$on('pager', function onPager(event, data) {
       var phase = this.$root.$$phase;
       if (phase === '$apply' || phase === '$digest') {
         $scope.pager = data;

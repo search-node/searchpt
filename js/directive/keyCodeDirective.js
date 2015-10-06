@@ -3,6 +3,10 @@
  * Directive to capture key codes.
  *
  * @see http://codepen.io/TheLarkInn/blog/angularjs-directive-labs-ngenterkey.
+ *
+ * Use by adding html attributes:
+ *   data-code="key_code_to_capture"
+ *   data-key-code="function_to_call()"
  */
 angular.module('searchBoxApp').directive('keyCode', function keyCode() {
   'use strict';
