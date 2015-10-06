@@ -63,6 +63,12 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         $scope.query.intervals = {};
       }
 
+      // Check if any dates have been configured.
+      if (CONFIG.provider.hasOwnProperty('dates')) {
+        $scope.dates = CONFIG.provider.dates;
+        $scope.query.dates = {};
+      }
+
       // Check if any search query have been located from the hash tag.
       if (state.hasOwnProperty('query')) {
         // Query found in state, so execute that search.
@@ -114,7 +120,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      */
     communicatorService.$on('pager', function (event, data) {
       var phase = this.$root.$$phase;
-      if(phase == '$apply' || phase == '$digest') {
+      if (phase === '$apply' || phase === '$digest') {
         pagerUpdated(data);
       }
       else {

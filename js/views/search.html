@@ -25,6 +25,19 @@
     </div>
   </div>
 
+  <!--  dates -->
+  <div class="row" data-ng-repeat="(id, date) in dates">
+    <div class="large-2 columns">
+      {{ date.label }}
+    </div>
+    <div class="large-4 columns">
+      <input type="text" data-ng-model="query.dates[id].from">
+    </div>
+    <div class="large-4 columns">
+      <input type="text" data-ng-model="query.dates[id].to">
+    </div>
+  </div>
+
   <!-- Filters -->
   <div class="large-6 columns" data-ng-repeat="(id, filter) in filters">
     <label><strong>{{ filter.name }}</strong></label>
