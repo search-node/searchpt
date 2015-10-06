@@ -163,7 +163,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     function buildAggregationQuery(filters) {
       // Basic aggregation query.
       var query = {
-        'aggs': {}
+        "aggs": {}
       };
 
       // Extend query with filter fields.
@@ -171,7 +171,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         var filter = filters[i];
         query.aggs[filter.name] = {
           "terms": {
-            'field': filter.field
+            "field": filter.field,
+            "size": 0
           }
         };
       }
@@ -499,8 +500,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         }
       }
 
-      console.log(JSON.stringify(query));
-
       // Create cache key based on the finale search query.
       var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
 
@@ -518,7 +517,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         connect().then(function () {
           socket.emit('search', query);
           socket.once('result', function (hits) {
-
             // Update cache filters cache.
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.
