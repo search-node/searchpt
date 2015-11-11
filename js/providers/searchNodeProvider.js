@@ -173,7 +173,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         var filter = filters[i];
         query.aggs[filter.name] = {
           "terms": {
-            "field": filter.field,
+            "field": filter.field + '.raw',
             "size": 0
           }
         };
@@ -388,15 +388,15 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             "execution": "and"
           };
 
-          terms[field] = [];
+          terms[field + '.raw'] = [];
           for (var term in filters[field]) {
             // Check the the term is "true", hence is selected.
             if (filters[field][term]) {
-              terms[field].push(term);
+              terms[field + '.raw'].push(term);
             }
           }
 
-          if (terms[field].length) {
+          if (terms[field + '.raw'].length) {
             queryFilter.bool.must.push({ "terms": terms });
           }
         }
