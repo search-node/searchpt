@@ -87,7 +87,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         if (CONFIG.hasOwnProperty('initialQueryText')) {
           $scope.query.text = angular.copy(CONFIG.initialQueryText);
 
-          // Execture the search.
+          // Execute the search.
           search();
         }
         else {

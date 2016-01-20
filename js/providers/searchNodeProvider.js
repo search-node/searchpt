@@ -23,7 +23,10 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     });
 
     // Holder for the latest search query filters.
-    var currentFilters;
+    var currentFilters = {
+      'taxonomy': undefined,
+      'boolean': undefined
+    };
 
     /**
      * Find the size of given object.
@@ -196,7 +199,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     function parseFilters(aggs) {
       var results = {};
       if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters;
+        var filters = CONFIG.provider.filters['taxonomy'];
 
         for (var i = 0; i < filters.length; i++) {
           var filter = angular.copy(filters[i]);
@@ -224,6 +227,33 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       return results;
     }
+
+    /**
+     * Build boolean filter based on configuration.
+     *
+     * @returns array
+     *   The boolean filter names indexed by field name.
+     */
+    function buildBooleanFilters() {
+      var result = {};
+
+      if (CONFIG.provider.hasOwnProperty('filters')) {
+        var filters = CONFIG.provider.filters;
+
+        // Check for boolean filters.
+        if (filters.hasOwnProperty('boolean')) {
+          for (var i = 0; i < filters['boolean'].length; i++) {
+            var filter = filters['boolean'][i];
+            result[filter.field] = {
+              'name': filter.name,
+            };
+          }
+        }
+      }
+
+      return result;
+    }
+
     /**
      * Get the list of available filters not parsed with search results.
      *
@@ -235,14 +265,22 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       if (CONFIG.provider.hasOwnProperty('filters')) {
         var filters = CONFIG.provider.filters;
-        for (var i = 0; i < filters.length; i++) {
 
-          // Set basic filter with counts.
-          result[filters[i].field] = {
-            'name': filters[i].name,
-            'items': filters[i].terms
-          };
+        // Check for taxonomy filters.
+        if (filters.hasOwnProperty('taxonomy')) {
+          result['taxonomy'] = {};
+          for (var i = 0; i < filters['taxonomy'].length; i++) {
+            var filter = filters['taxonomy'][i];
+            // Set basic filter with counts.
+            result['taxonomy'][filter.field] = {
+              'name': filter.name,
+              'items': filter.terms
+            };
+          }
         }
+
+        // Check for boolean filters.
+        result['boolean'] = buildBooleanFilters();
       }
 
       return result;
@@ -263,11 +301,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       // Get filters from configuration.
       if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters;
-
         // If no search has been executed yet, load the default filters across
         // all indexed data.
-        if (currentFilters === undefined) {
+        if (currentFilters['taxonomy'] === undefined) {
           // Check if filters are cached.
           var cachedFilters = searchCache.get('filters');
 
@@ -280,7 +316,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           }
           else {
             // Get the query.
-            var query = buildAggregationQuery(filters);
+            var query = buildAggregationQuery(CONFIG.provider.filters['taxonomy']);
 
             /**
              * @TODO: Added forced fields and other search options.
@@ -290,16 +326,14 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             connect().then(function () {
               socket.emit('count', query);
               socket.once('counts', function (counts) {
-                var results = parseFilters(counts);
+                currentFilters['taxonomy'] = parseFilters(counts);
+                currentFilters['boolean'] = buildBooleanFilters();
 
                 // Store initial filters in cache.
-                searchCache.put('filters', results);
-
-                // Store current filters.
-                currentFilters = results;
+                searchCache.put('filters', currentFilters);
 
                 // Return the result.
-                deferred.resolve(results);
+                deferred.resolve(currentFilters);
               });
 
               // Catch search errors.
@@ -378,26 +412,40 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           }
         };
 
-        // Load over all filters.
-        for (var field in filters) {
-          /**
-           * @TODO: Needs to get information from configuration about execution
-           *        type?
-           */
-          var terms = {
-            "execution": "and"
-          };
+        // Loop over taxonomy filters.
+        if (filters.hasOwnProperty('taxonomy')) {
+          for (var field in filters['taxonomy']) {
+            var filter = filters['taxonomy'][field];
+            /**
+             * @TODO: Needs to get information from configuration about execution
+             *        type?
+             */
+            var terms = {
+              "execution": "and"
+            };
 
-          terms[field + '.raw'] = [];
-          for (var term in filters[field]) {
-            // Check the the term is "true", hence is selected.
-            if (filters[field][term]) {
-              terms[field + '.raw'].push(term);
+            terms[field + '.raw'] = [];
+            for (var term in filter) {
+              // Check the the term is "true", hence is selected.
+              if (filter[term]) {
+                terms[field + '.raw'].push(term);
+              }
+            }
+
+            if (terms[field + '.raw'].length) {
+              queryFilter.bool.must.push({ "terms": terms });
             }
           }
+        }
 
-          if (terms[field + '.raw'].length) {
-            queryFilter.bool.must.push({ "terms": terms });
+        // Loop over boolean filters.
+        if (filters.hasOwnProperty('boolean')) {
+          for (var field in filters['boolean']) {
+            if (filters['boolean'][field]) {
+              var term = {};
+              term[field] = filters['boolean'][field];
+              queryFilter.bool.must.push({ "term": term });
+            }
           }
         }
 
@@ -416,7 +464,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       // Check if aggregations/filters counts should be used.
       if (CONFIG.provider.hasOwnProperty('filters')) {
         // Get the query.
-        var aggs = buildAggregationQuery(CONFIG.provider.filters);
+        var aggs = buildAggregationQuery(CONFIG.provider.filters['taxonomy']);
         angular.extend(query, aggs);
       }
 
@@ -511,7 +559,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (hits !== undefined) {
         // Update filters cache.
         if (hits.hasOwnProperty('aggs')) {
-          currentFilters = parseFilters(angular.copy(hits.aggs));
+          currentFilters['taxonomy'] = parseFilters(angular.copy(hits.aggs));
+          currentFilters['boolean'] = buildBooleanFilters();
         }
 
         deferred.resolve(hits);
@@ -523,7 +572,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             // Update cache filters cache, based on the current search result.
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.
-              currentFilters = parseFilters(angular.copy(hits.aggs));
+              currentFilters['taxonomy'] = parseFilters(angular.copy(hits.aggs));
+              currentFilters['boolean'] = buildBooleanFilters();
             }
 
             // Save hits in cache.

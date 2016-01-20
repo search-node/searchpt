@@ -257,17 +257,25 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
         var forces = CONFIG.provider.force;
         for (var i in forces) {
           var force = forces[i];
+
+          // Check filter type.
+          if (!query.filters.hasOwnProperty(force.type)) {
+            query.filters[force.type] = {};
+          }
+
           // Check if user have selected filter, if not init it.
           if (!query.filters.hasOwnProperty(force.field)) {
-            query.filters[force.field] = {};
+            query.filters[force.type][force.field] = {};
           }
 
           // Insert the forced field values.
           for (var j in force.values) {
-            query.filters[force.field][force.values[j]] = true;
+            query.filters[force.type][force.field][force.values[j]] = true;
           }
         }
       }
+
+      console.log(query);
 
       return provider.search(query);
     };
