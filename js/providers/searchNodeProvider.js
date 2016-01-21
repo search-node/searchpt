@@ -31,12 +31,10 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     /**
      * Find the size of given object.
      *
-     * @TODO: Review - Size: as in number of properties? Maybe change naming?
-     *
      * @return int
      *   The size of the object or 0 if empty.
      */
-    function objectSize(obj) {
+    function countProperties(obj) {
       var size = 0;
       for (var key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -211,7 +209,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           };
 
           // Run through counts and update the filter.
-          if (objectSize(aggs) !== 0) {
+          if (countProperties(aggs) !== 0) {
             for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
               var bucket = aggs[filter.name].buckets[j];
               if (results[filter.field].items.hasOwnProperty(bucket.key)) {
@@ -383,7 +381,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (searchQuery.text !== undefined && searchQuery.text !== '') {
         var fields = configuration.fields;
         // Check if boost exist for the fields.
-        if (configuration.hasOwnProperty('boost') && objectSize(configuration.boost)) {
+        if (configuration.hasOwnProperty('boost') && countProperties(configuration.boost)) {
           // Add boost to fields.
           for (var i in fields) {
             if (configuration.boost.hasOwnProperty(fields[i])) {
