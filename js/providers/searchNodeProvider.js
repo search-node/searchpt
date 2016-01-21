@@ -169,15 +169,38 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         "aggs": {}
       };
 
-      // Extend query with filter fields.
-      for (var i = 0; i < filters.length; i++) {
-        var filter = filters[i];
-        query.aggs[filter.name] = {
-          "terms": {
-            "field": filter.field + '.raw',
-            "size": 0
-          }
-        };
+      for (var filterType in filters) {
+        switch (filterType) {
+          case 'taxonomy':
+            var taxonomyFilters = filters[filterType];
+            // Extend query with filter fields.
+            for (var i = 0; i < taxonomyFilters.length; i++) {
+              var filter = taxonomyFilters[i];
+              query.aggs[filter.field] = {
+                "terms": {
+                  "field": filter.field + '.raw',
+                  "size": 0
+                }
+              };
+            }
+            break;
+
+          case 'boolean':
+            var booleanFilters = filters[filterType];
+            for (var i = 0; i < booleanFilters.length; i++) {
+              var filter = booleanFilters[i];
+              query.aggs[filter.field] = {
+                "terms": {
+                  "field": filter.field,
+                  "size": 0
+                }
+              };
+            }
+            break;
+
+          default:
+            console.error('Aggregation filter has unknown type - ' + filterType);
+        }
       }
 
       return query;
@@ -195,28 +218,55 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * @returns {{}}
      */
     function parseFilters(aggs) {
-      var results = {};
+      var results = {
+        'taxonomy': {},
+        'boolean': {}
+      };
+
       if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters.taxonomy;
+        var filterConfig = CONFIG.provider.filters;
 
-        for (var i = 0; i < filters.length; i++) {
-          var filter = angular.copy(filters[i]);
+        for (var filterType in filterConfig) {
+          var filters = filterConfig[filterType];
+          for (var i = 0; i < filters.length; i++) {
+            var filter = angular.copy(filters[i]);
 
-          // Set basic filter with counts.
-          results[filter.field] = {
-            'name': filter.name,
-            'items': filter.terms
-          };
+            // Set basic filter with counts.
+            results[filterType][filter.field] = {
+              'name': filter.name,
+            };
 
-          // Run through counts and update the filter.
-          if (countProperties(aggs) !== 0) {
-            for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
-              var bucket = aggs[filter.name].buckets[j];
-              if (results[filter.field].items.hasOwnProperty(bucket.key)) {
-                results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
-              }
-              else {
-                console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key);
+            if (countProperties(aggs) !== 0) {
+              // Run through counts and update the filters.
+              switch (filterType) {
+                case 'taxonomy':
+                  results[filterType][filter.field].items = filter.terms;
+
+                  for (var j = 0; j < aggs[filter.field].buckets.length; j++) {
+                    var bucket = aggs[filter.field].buckets[j];
+                    if (results[filterType][filter.field].items.hasOwnProperty(bucket.key)) {
+                      results[filterType][filter.field].items[bucket.key].count = Number(bucket.doc_count);
+                    }
+                    else {
+                      console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key);
+                    }
+                  }
+                  break;
+
+                case 'boolean':
+                  for (var j = 0; j < aggs[filter.field].buckets.length; j++) {
+                    var bucket = aggs[filter.field].buckets[j];
+
+                    // Set default count for "true" to zero.
+                    results[filterType][filter.field].count = 0;
+                    if (bucket.key === 'T' && bucket.doc_count > 0) {
+                      results[filterType][filter.field].count = Number(bucket.doc_count);
+                    }
+                  }
+                  break;
+
+                default:
+                  console.error('Unknown filter type used in parseFilters: ' + filterType);
               }
             }
           }
@@ -314,7 +364,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           }
           else {
             // Get the query.
-            var query = buildAggregationQuery(CONFIG.provider.filters.taxonomy);
+            var query = buildAggregationQuery(CONFIG.provider.filters);
 
             /**
              * @TODO: Added forced fields and other search options.
@@ -324,8 +374,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             connect().then(function () {
               socket.emit('count', query);
               socket.once('counts', function (counts) {
-                currentFilters.taxonomy = parseFilters(counts);
-                currentFilters.boolean = buildBooleanFilters();
+                currentFilters = parseFilters(counts);
+                //currentFilters.boolean = buildBooleanFilters();
 
                 // Store initial filters in cache.
                 searchCache.put('filters', currentFilters);
@@ -462,7 +512,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       // Check if aggregations/filters counts should be used.
       if (CONFIG.provider.hasOwnProperty('filters')) {
         // Get the query.
-        var aggs = buildAggregationQuery(CONFIG.provider.filters.taxonomy);
+        var aggs = buildAggregationQuery(CONFIG.provider.filters);
         angular.extend(query, aggs);
       }
 
@@ -557,8 +607,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (hits !== undefined) {
         // Update filters cache.
         if (hits.hasOwnProperty('aggs')) {
-          currentFilters.taxonomy = parseFilters(angular.copy(hits.aggs));
-          currentFilters.boolean = buildBooleanFilters();
+          currentFilters = parseFilters(angular.copy(hits.aggs));
+          //currentFilters.boolean = buildBooleanFilters();
         }
 
         deferred.resolve(hits);
@@ -570,8 +620,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             // Update cache filters cache, based on the current search result.
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.
-              currentFilters.taxonomy = parseFilters(angular.copy(hits.aggs));
-              currentFilters.boolean = buildBooleanFilters();
+              currentFilters = parseFilters(angular.copy(hits.aggs));
+              //currentFilters.boolean = buildBooleanFilters();
             }
 
             // Save hits in cache.

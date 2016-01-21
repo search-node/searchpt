@@ -49,7 +49,7 @@
 
   <!-- Boolean filters -->
   <div class="large-6 columns" data-ng-repeat="(id, field) in filters['boolean']">
-    <input id="{{ id }}" type="checkbox" data-ng-model="query.filters['boolean'][id]" data-ng-click="searchClicked()">
-    <label for="{{ key }}">{{ field.name }}</label>
+    <input id="{{ id }}" data-ng-disabled="!field.count" type="checkbox" data-ng-model="query.filters['boolean'][id]" data-ng-click="searchClicked()">
+    <label data-ng-class="{ disabled: !field.count }" for="{{ key }}">{{ field.name }}</label>
   </div>
 </div>
