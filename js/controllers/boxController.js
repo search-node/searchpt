@@ -13,7 +13,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      * Execute the search and emit the results.
      */
     function search() {
-      // Send info to restults that a new search have started.
+      // Send info to results that a new search have started.
       communicatorService.$emit('searching', {});
 
       // Start the search request.
@@ -43,8 +43,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      */
     function init() {
       // Get state from previous search.
-      // @TODO: Review - should be called something else than init?: getState().
-      var state = searchProxyService.init();
+      var state = searchProxyService.getState();
 
       // Get filters.
       $scope.filters = state.filters;
@@ -83,11 +82,11 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           $scope.query.pager = angular.copy(CONFIG.provider.pager);
         }
 
-        // Check if an inital search should be executed.
+        // Check if an initial search should be executed.
         if (CONFIG.hasOwnProperty('initialQueryText')) {
           $scope.query.text = angular.copy(CONFIG.initialQueryText);
 
-          // Execture the search.
+          // Execute the search.
           search();
         }
         else {
