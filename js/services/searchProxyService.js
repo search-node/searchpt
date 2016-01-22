@@ -19,12 +19,10 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
     /**
      * Find the size of given object.
      *
-     * @TODO: Review - Size: as in number of properties? Maybe change naming?
-     *
      * @return int
      *   The size of the object or 0 if empty.
      */
-    function objectSize(obj) {
+    function countProperties(obj) {
       var size = 0;
       for (var key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -53,30 +51,43 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
       }
 
       // Filters.
-      if (query.hasOwnProperty('filters') && objectSize(query.filters) !== 0) {
-        var filterParts = [];
-        for (var field in query.filters) {
-          var selected = [];
-          for (var filter in query.filters[field]) {
-            if (query.filters[field][filter] === true) {
-              selected.push(filter);
+      if (query.hasOwnProperty('filters')) {
+        for (var type in query.filters) {
+          if (countProperties(query.filters[type]) !== 0) {
+            var filter = query.filters[type];
+            var filterParts = [];
+            for (var field in filter) {
+              var selected = [];
+
+              // Check if it's a simple boolean filter.
+              if (typeof filter[field] === "boolean" && filter[field] === true) {
+                filterParts.push(field);
+              }
+              else {
+                // Multi level filters (taxonomy).
+                for (var i in filter[field]) {
+                  if (filter[field][i] === true) {
+                    selected.push(i);
+                  }
+                }
+
+                // Only add the filter if filter have selections.
+                if (selected.length) {
+                  filterParts.push(field + ':' + selected.join(';'));
+                }
+              }
+            }
+
+            // Only encode filters if any have be selected.
+            if (filterParts.length) {
+              parts.push('filters[' + type + ']=' + encodeURIComponent(filterParts.join('?')));
             }
           }
-
-          // Only add the filter if filter have selections.
-          if (selected.length) {
-            filterParts.push(field + ':' + selected.join(';'));
-          }
-        }
-
-        // Only encode filters if any have be selected.
-        if (filterParts.length) {
-          parts.push('filters=' + encodeURIComponent(filterParts.join('?')));
         }
       }
 
       // Interval search.
-      if (query.hasOwnProperty('intervals') && objectSize(query.intervals) !== 0) {
+      if (query.hasOwnProperty('intervals') && countProperties(query.intervals) !== 0) {
         var intervalParts = [];
         for (var field in query.intervals) {
           var interval = query.intervals[field];
@@ -86,7 +97,7 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
       }
 
       // Date search.
-      if (query.hasOwnProperty('dates') && objectSize(query.dates) !== 0) {
+      if (query.hasOwnProperty('dates') && countProperties(query.dates) !== 0) {
         // @TODO: This is the same as for intervals. Refactor into function or
         // loop over type.
         var dateParts = [];
@@ -114,35 +125,63 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
      * @return object
      *   Search query object.
      */
-    function decodeSearhQuery(string) {
+    function decodeSearchQuery(string) {
       var query = {};
 
       // Get parts.
       var parts = string.substr(2).split('&');
       for (var part in parts) {
-        var subparts = parts[part].split('=');
-        switch (subparts[0]) {
+        // Decode the type identifier.
+        var subParts = parts[part].split('=');
+        var type = decodeURIComponent(subParts[0]);
+        if (type.indexOf('[') !== -1) {
+          type = type.substr(0, type.indexOf('['));
+        }
+
+        switch (type) {
           case 'text':
-            query.text = decodeURIComponent(subparts[1]);
+            query.text = decodeURIComponent(subParts[1]);
             break;
 
           case 'filters':
-            var filters = decodeURIComponent(subparts[1]).split('?');
+            var str = decodeURIComponent(subParts[0]);
+            var filterType = str.substr(str.indexOf('[') + 1).slice(0, -1);
+            var filters = decodeURIComponent(subParts[1]).split('?');
+
             if (filters.length) {
-              query.filters = {};
+              // Initialize the filters on the query object.
+              if (!query.hasOwnProperty('filters')) {
+                query.filters = {
+                  'taxonomy': {},
+                  'boolean': {}
+                };
+              }
+
               for (var i in filters) {
-                var filter = filters[i].split(':');
-                // Reduce the array values into an object.
-                query.filters[filter[0]] = filter[1].split(';').reduce(function (obj, val, index) {
-                  obj[val] = true;
-                  return obj;
-                }, {});
+                switch (filterType) {
+                  case 'taxonomy':
+                    var filter = filters[i].split(':');
+                    // Reduce the array values into an object.
+                    query.filters[filterType][filter[0]] = filter[1].split(';').reduce(function (obj, val, index) {
+                      obj[val] = true;
+                      return obj;
+                    }, {});
+                    break;
+
+                  case 'boolean':
+                    query.filters[filterType][filters[i]] = true;
+                    break;
+
+                  default:
+                    console.error('Decoding of search hash has unknown filter type - ' + filterType);
+                }
+
               }
             }
             break;
 
           case 'intervals':
-            var intervals = decodeURIComponent(subparts[1]).split('?');
+            var intervals = decodeURIComponent(subParts[1]).split('?');
             if (intervals.length) {
               query.intervals = {};
               for (var i in intervals) {
@@ -157,7 +196,7 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
 
           // @TODO: This is the same as for intervals. Refactor into function.
           case 'dates':
-            var dates = decodeURIComponent(subparts[1]).split('?');
+            var dates = decodeURIComponent(subParts[1]).split('?');
             if (dates.length) {
               query.dates = {};
               for (var i in dates) {
@@ -171,7 +210,7 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
             break;
 
           case 'pager':
-            var pager = subparts[1].split(':');
+            var pager = subParts[1].split(':');
             query.pager = {
               'page': Number(pager[0]),
               'size': Number(pager[1])
@@ -179,7 +218,7 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
             break;
 
           default:
-            console.error('Decoding of search hash has unknown parts - ' + subparts[0]);
+            console.error('Decoding of search hash has unknown parts - ' + subParts[0]);
         }
       }
 
@@ -192,14 +231,14 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
      * @return object
      *  The last query form hash tag and default filters.
      */
-    this.init = function init() {
+    this.getState = function getState() {
       var state = {
         'filters': this.getRawFilters()
       };
 
       var hash = window.location.hash;
       if (hash.length > 2) {
-         state.query = decodeSearhQuery(hash);
+         state.query = decodeSearchQuery(hash);
       }
 
       return state;
@@ -257,14 +296,20 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
         var forces = CONFIG.provider.force;
         for (var i in forces) {
           var force = forces[i];
+
+          // Check filter type.
+          if (!query.filters.hasOwnProperty(force.type)) {
+            query.filters[force.type] = {};
+          }
+
           // Check if user have selected filter, if not init it.
           if (!query.filters.hasOwnProperty(force.field)) {
-            query.filters[force.field] = {};
+            query.filters[force.type][force.field] = {};
           }
 
           // Insert the forced field values.
           for (var j in force.values) {
-            query.filters[force.field][force.values[j]] = true;
+            query.filters[force.type][force.field][force.values[j]] = true;
           }
         }
       }

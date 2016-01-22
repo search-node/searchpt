@@ -23,17 +23,18 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     });
 
     // Holder for the latest search query filters.
-    var currentFilters;
+    var currentFilters = {
+      'taxonomy': undefined,
+      'boolean': undefined
+    };
 
     /**
      * Find the size of given object.
      *
-     * @TODO: Review - Size: as in number of properties? Maybe change naming?
-     *
      * @return int
      *   The size of the object or 0 if empty.
      */
-    function objectSize(obj) {
+    function countProperties(obj) {
       var size = 0;
       for (var key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -168,15 +169,38 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         "aggs": {}
       };
 
-      // Extend query with filter fields.
-      for (var i = 0; i < filters.length; i++) {
-        var filter = filters[i];
-        query.aggs[filter.name] = {
-          "terms": {
-            "field": filter.field + '.raw',
-            "size": 0
-          }
-        };
+      for (var filterType in filters) {
+        switch (filterType) {
+          case 'taxonomy':
+            var taxonomyFilters = filters[filterType];
+            // Extend query with filter fields.
+            for (var i = 0; i < taxonomyFilters.length; i++) {
+              var filter = taxonomyFilters[i];
+              query.aggs[filter.field] = {
+                "terms": {
+                  "field": filter.field + '.raw',
+                  "size": 0
+                }
+              };
+            }
+            break;
+
+          case 'boolean':
+            var booleanFilters = filters[filterType];
+            for (var i = 0; i < booleanFilters.length; i++) {
+              var filter = booleanFilters[i];
+              query.aggs[filter.field] = {
+                "terms": {
+                  "field": filter.field,
+                  "size": 0
+                }
+              };
+            }
+            break;
+
+          default:
+            console.error('Aggregation filter has unknown type - ' + filterType);
+        }
       }
 
       return query;
@@ -194,28 +218,55 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * @returns {{}}
      */
     function parseFilters(aggs) {
-      var results = {};
+      var results = {
+        'taxonomy': {},
+        'boolean': {}
+      };
+
       if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters;
+        var filterConfig = CONFIG.provider.filters;
 
-        for (var i = 0; i < filters.length; i++) {
-          var filter = angular.copy(filters[i]);
+        for (var filterType in filterConfig) {
+          var filters = filterConfig[filterType];
+          for (var i = 0; i < filters.length; i++) {
+            var filter = angular.copy(filters[i]);
 
-          // Set basic filter with counts.
-          results[filter.field] = {
-            'name': filter.name,
-            'items': filter.terms
-          };
+            // Set basic filter with counts.
+            results[filterType][filter.field] = {
+              'name': filter.name,
+            };
 
-          // Run through counts and update the filter.
-          if (objectSize(aggs) !== 0) {
-            for (var j = 0; j < aggs[filter.name].buckets.length; j++) {
-              var bucket = aggs[filter.name].buckets[j];
-              if (results[filter.field].items.hasOwnProperty(bucket.key)) {
-                results[filter.field].items[bucket.key].count = Number(bucket.doc_count);
-              }
-              else {
-                console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key);
+            if (countProperties(aggs) !== 0) {
+              // Run through counts and update the filters.
+              switch (filterType) {
+                case 'taxonomy':
+                  results[filterType][filter.field].items = filter.terms;
+
+                  for (var j = 0; j < aggs[filter.field].buckets.length; j++) {
+                    var bucket = aggs[filter.field].buckets[j];
+                    if (results[filterType][filter.field].items.hasOwnProperty(bucket.key)) {
+                      results[filterType][filter.field].items[bucket.key].count = Number(bucket.doc_count);
+                    }
+                    else {
+                      console.error('Filter value don\'t match configuration: ' + filter.field + ' -> ' + bucket.key);
+                    }
+                  }
+                  break;
+
+                case 'boolean':
+                  for (var j = 0; j < aggs[filter.field].buckets.length; j++) {
+                    var bucket = aggs[filter.field].buckets[j];
+
+                    // Set default count for "true" to zero.
+                    results[filterType][filter.field].count = 0;
+                    if (bucket.key === 'T' && bucket.doc_count > 0) {
+                      results[filterType][filter.field].count = Number(bucket.doc_count);
+                    }
+                  }
+                  break;
+
+                default:
+                  console.error('Unknown filter type used in parseFilters: ' + filterType);
               }
             }
           }
@@ -224,6 +275,33 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       return results;
     }
+
+    /**
+     * Build boolean filter based on configuration.
+     *
+     * @returns array
+     *   The boolean filter names indexed by field name.
+     */
+    function buildBooleanFilters() {
+      var result = {};
+
+      if (CONFIG.provider.hasOwnProperty('filters')) {
+        var filters = CONFIG.provider.filters;
+
+        // Check for boolean filters.
+        if (filters.hasOwnProperty('boolean')) {
+          for (var i = 0; i < filters.boolean.length; i++) {
+            var filter = filters.boolean[i];
+            result[filter.field] = {
+              'name': filter.name,
+            };
+          }
+        }
+      }
+
+      return result;
+    }
+
     /**
      * Get the list of available filters not parsed with search results.
      *
@@ -235,14 +313,22 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       if (CONFIG.provider.hasOwnProperty('filters')) {
         var filters = CONFIG.provider.filters;
-        for (var i = 0; i < filters.length; i++) {
 
-          // Set basic filter with counts.
-          result[filters[i].field] = {
-            'name': filters[i].name,
-            'items': filters[i].terms
-          };
+        // Check for taxonomy filters.
+        if (filters.hasOwnProperty('taxonomy')) {
+          result.taxonomy = {};
+          for (var i = 0; i < filters.taxonomy.length; i++) {
+            var filter = filters.taxonomy[i];
+            // Set basic filter with counts.
+            result.taxonomy[filter.field] = {
+              'name': filter.name,
+              'items': filter.terms
+            };
+          }
         }
+
+        // Check for boolean filters.
+        result.boolean = buildBooleanFilters();
       }
 
       return result;
@@ -263,11 +349,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       // Get filters from configuration.
       if (CONFIG.provider.hasOwnProperty('filters')) {
-        var filters = CONFIG.provider.filters;
-
         // If no search has been executed yet, load the default filters across
         // all indexed data.
-        if (currentFilters === undefined) {
+        if (currentFilters.taxonomy === undefined) {
           // Check if filters are cached.
           var cachedFilters = searchCache.get('filters');
 
@@ -280,7 +364,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           }
           else {
             // Get the query.
-            var query = buildAggregationQuery(filters);
+            var query = buildAggregationQuery(CONFIG.provider.filters);
 
             /**
              * @TODO: Added forced fields and other search options.
@@ -290,16 +374,14 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             connect().then(function () {
               socket.emit('count', query);
               socket.once('counts', function (counts) {
-                var results = parseFilters(counts);
+                currentFilters = parseFilters(counts);
+                //currentFilters.boolean = buildBooleanFilters();
 
                 // Store initial filters in cache.
-                searchCache.put('filters', results);
-
-                // Store current filters.
-                currentFilters = results;
+                searchCache.put('filters', currentFilters);
 
                 // Return the result.
-                deferred.resolve(results);
+                deferred.resolve(currentFilters);
               });
 
               // Catch search errors.
@@ -349,7 +431,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       if (searchQuery.text !== undefined && searchQuery.text !== '') {
         var fields = configuration.fields;
         // Check if boost exist for the fields.
-        if (configuration.hasOwnProperty('boost') && objectSize(configuration.boost)) {
+        if (configuration.hasOwnProperty('boost') && countProperties(configuration.boost)) {
           // Add boost to fields.
           for (var i in fields) {
             if (configuration.boost.hasOwnProperty(fields[i])) {
@@ -378,26 +460,40 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           }
         };
 
-        // Load over all filters.
-        for (var field in filters) {
-          /**
-           * @TODO: Needs to get information from configuration about execution
-           *        type?
-           */
-          var terms = {
-            "execution": "and"
-          };
+        // Loop over taxonomy filters.
+        if (filters.hasOwnProperty('taxonomy')) {
+          for (var field in filters.taxonomy) {
+            var filter = filters.taxonomy[field];
+            /**
+             * @TODO: Needs to get information from configuration about execution
+             *        type?
+             */
+            var terms = {
+              "execution": "and"
+            };
 
-          terms[field + '.raw'] = [];
-          for (var term in filters[field]) {
-            // Check the the term is "true", hence is selected.
-            if (filters[field][term]) {
-              terms[field + '.raw'].push(term);
+            terms[field + '.raw'] = [];
+            for (var term in filter) {
+              // Check the the term is "true", hence is selected.
+              if (filter[term]) {
+                terms[field + '.raw'].push(term);
+              }
+            }
+
+            if (terms[field + '.raw'].length) {
+              queryFilter.bool.must.push({ "terms": terms });
             }
           }
+        }
 
-          if (terms[field + '.raw'].length) {
-            queryFilter.bool.must.push({ "terms": terms });
+        // Loop over boolean filters.
+        if (filters.hasOwnProperty('boolean')) {
+          for (var field in filters.boolean) {
+            if (filters.boolean[field]) {
+              var term = {};
+              term[field] = filters.boolean[field];
+              queryFilter.bool.must.push({ "term": term });
+            }
           }
         }
 
@@ -512,6 +608,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         // Update filters cache.
         if (hits.hasOwnProperty('aggs')) {
           currentFilters = parseFilters(angular.copy(hits.aggs));
+          //currentFilters.boolean = buildBooleanFilters();
         }
 
         deferred.resolve(hits);
@@ -524,6 +621,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.
               currentFilters = parseFilters(angular.copy(hits.aggs));
+              //currentFilters.boolean = buildBooleanFilters();
             }
 
             // Save hits in cache.

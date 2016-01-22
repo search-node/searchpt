@@ -23,39 +23,41 @@ angular.module('searchAppConfig', [])
       },
       'cacheExpire': 5,
       'intervals': ['created'],
-      'filters': [
-        {
-          'field': 'field_level',
-          'name': 'Level',
-          'type': 'and',
-          'terms': {
-            "First": {
-              'value': 'First'
-            },
-            "Second": {
-              'value': 'Second'
-            },
-            "Third": {
-              'value': 'Third'
-            },
-            "Fourth": {
-              'value': 'Fourth'
-            },
+      'filters': {
+        'taxonomy': [
+          {
+            'field': 'field_level',
+            'name': 'Level',
+            'type': 'and',
+            'terms': {
+              "First": {
+                'value': 'First'
+              },
+              "Second": {
+                'value': 'Second'
+              },
+              "Third": {
+                'value': 'Third'
+              },
+              "Fourth": {
+                'value': 'Fourth'
+              },
+            }
+          },
+          {
+            'field': 'field_teknologi',
+            'name': 'Teknologi',
+            'type': 'and',
+            'terms': {
+              "Angular": {
+                'value': 'Angular'
+              },
+              "Javascript": {
+                'value': 'Javascript'
+              },
+            }
           }
-        },
-        {
-          'field': 'field_teknologi',
-          'name': 'Teknologi',
-          'type': 'and',
-          'terms': {
-            "Angular": {
-              'value': 'Angular'
-            },
-            "Javascript": {
-              'value': 'Javascript'
-            },
-          }
-        }
-      ]
+        ]
+      }
     }
   });
