@@ -449,6 +449,16 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         };
       }
 
+      // Add sort fields.
+      if (searchQuery.hasOwnProperty('sort') && countProperties(searchQuery.sort) > 0) {
+        query.sort = {};
+        for (var field in searchQuery.sort) {
+          query.sort[field] = {
+            "order": searchQuery.sort[field]
+          };
+        }
+      }
+
       // Add filter.
       if (searchQuery.hasOwnProperty('filters')) {
         var filters = angular.copy(searchQuery.filters);
