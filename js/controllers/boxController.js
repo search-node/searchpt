@@ -16,6 +16,14 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       // Send info to results that a new search have started.
       communicatorService.$emit('searching', {});
 
+      // Add sorting to the search query. It's added here to make it possible to
+      // override or add sorting in search queries from the UI. If it was added
+      // in the provider it would limit further sorting from the UI.
+      if (CONFIG.provider.hasOwnProperty('sorting')) {
+        $scope.query.sort = {};
+        $scope.query.sort[CONFIG.provider.sorting.field] = CONFIG.provider.sorting.order;
+      }
+
       // Start the search request.
       searchProxyService.search($scope.query).then(
         function (data) {

@@ -22,6 +22,10 @@ angular.module('searchAppConfig', [])
         'page': 0
       },
       'cacheExpire': 5,
+      'sorting': {
+        'field': 'title',
+        'order': 'asc'
+      },
       'intervals': ['created'],
       'filters': {
         'taxonomy': [
