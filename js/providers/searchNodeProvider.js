@@ -261,6 +261,10 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
                     results[filterType][filter.field].count = 0;
                     if (bucket.key === 'T' && bucket.doc_count > 0) {
                       results[filterType][filter.field].count = Number(bucket.doc_count);
+
+                      // Break has true count have been found, if not we don't break. The
+                      // count will be reset to zero.
+                      break;
                     }
                   }
                   break;
