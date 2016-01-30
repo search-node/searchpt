@@ -279,7 +279,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     /**
      * Build boolean filter based on configuration.
      *
-     * @returns array
+     * @returns object
      *   The boolean filter names indexed by field name.
      */
     function buildBooleanFilters() {
@@ -375,7 +375,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
               socket.emit('count', query);
               socket.once('counts', function (counts) {
                 currentFilters = parseFilters(counts);
-                //currentFilters.boolean = buildBooleanFilters();
 
                 // Store initial filters in cache.
                 searchCache.put('filters', currentFilters);
@@ -618,7 +617,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         // Update filters cache.
         if (hits.hasOwnProperty('aggs')) {
           currentFilters = parseFilters(angular.copy(hits.aggs));
-          //currentFilters.boolean = buildBooleanFilters();
         }
 
         deferred.resolve(hits);
@@ -631,7 +629,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             if (hits.hasOwnProperty('aggs')) {
               // Store current filters.
               currentFilters = parseFilters(angular.copy(hits.aggs));
-              //currentFilters.boolean = buildBooleanFilters();
             }
 
             // Save hits in cache.
