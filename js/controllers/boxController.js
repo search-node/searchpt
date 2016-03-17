@@ -44,6 +44,24 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           console.error(reason);
         }
       );
+
+      // If maps.
+      if (CONFIG.provider.hasOwnProperty('map')) {
+        var query = angular.copy($scope.query);
+        if (CONFIG.provider.hasOwnProperty('pager')) {
+          //delete query.pager;
+          query.pager.size = CONFIG.provider.map.points;
+        }
+        searchProxyService.search(query).then(
+          function (data) {
+            // Send results.
+            communicatorService.$emit('mapHits', data);
+          },
+          function (reason) {
+            console.error(reason);
+          }
+        );
+      }
     }
 
     /**

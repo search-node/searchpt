@@ -1,3 +1,8 @@
+<!-- Map search -->
+<search-map>
+  <div id="search-map" style="width: 100%; height: 600px"></div>
+</search-map>
+
 <!--
   Default view for the search result application.
 
@@ -9,10 +14,8 @@
     <hr>
     <h3>Search results <span data-ng-if="hits.hits > 0">({{ hits.hits }})</span></h3>
     <article data-ng-repeat="hit in hits.results">
-      <strong>{{ hit.title }}</strong>
-      <p data-ng-bind-html="hit['body:value']"></p>
-      <p><strong>Level: </strong><span data-ng-repeat="level in hit.field_level track by $index">{{ level }} </span></p>
-      <p><strong>Technology: </strong><span data-ng-repeat="level in hit.field_teknologi track by $index">{{ level }} </span></p>
+      <p><strong>Name: </strong>{{ hit['field_profile_name'] }}</p>
+      <p><strong>Location: </strong>{{ hit.field_location.lat }}, {{ hit.field_location.lon }}</p>
       <p><strong>Created:</strong><span>{{ hit.created * 1000 | date:'dd/MM/yy HH:mm:ss' }}</span></p>
       <hr>
     </article>
