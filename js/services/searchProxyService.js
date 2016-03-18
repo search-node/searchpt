@@ -251,11 +251,15 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
      *
      * @param searchQuery
      *   The search query.
+     * @param byPassUrlEncode
+     *   Don't encode the query in the browsers URL. Default false.
      *
      * @returns {Number|*|Object}
      *   The search result.
      */
-    this.search = function search(searchQuery) {
+    this.search = function search(searchQuery, byPassUrlEncode) {
+      byPassUrlEncode = (typeof byPassUrlEncode === 'undefined') ? false : byPassUrlEncode;
+
       // Ensure that forced fields and other changes are not reflected in the
       // UI.
       var query = angular.copy(searchQuery);
@@ -283,7 +287,9 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
       }
 
       // Keep track of the current URL.
-      window.location.hash = encodeSearchQuery(query);
+      if (!byPassUrlEncode) {
+        window.location.hash = encodeSearchQuery(query);
+      }
 
       // Force search filters form configuration (predefined filters).
       if (CONFIG.provider.hasOwnProperty('force') && CONFIG.provider.force.length) {
