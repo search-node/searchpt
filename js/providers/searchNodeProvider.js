@@ -615,6 +615,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       // Create cache key based on the finale search query.
       var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
 
+      // Give unique id to the search query.
+      query.uuid = cid;
+
       // Check cache for hits.
       var hits = searchCache.get(cid);
       if (hits !== undefined) {
@@ -627,25 +630,44 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       }
       else {
         connect().then(function () {
-          socket.emit('search', query);
-          socket.once('result', function (hits) {
-            // Update cache filters cache, based on the current search result.
-            if (hits.hasOwnProperty('aggs')) {
-              // Store current filters.
-              currentFilters = parseFilters(angular.copy(hits.aggs));
+
+          /**
+           * Search error handler for this event.
+           */
+          var searchError = function searchError() {
+            console.error('Search error', error.message);
+            deferred.reject(error.message);
+          };
+
+          // Listen to search results.
+          socket.on('result', function (hits) {
+            // Check if this socket message is for this query.
+            if (hits.uuid == query.uuid) {
+              socket.removeListener('result', this);
+              socket.removeListener('searchError', searchError);
+
+              // Update cache filters cache, based on the current search result.
+              if (hits.hasOwnProperty('aggs')) {
+                // Store current filters.
+                currentFilters = parseFilters(angular.copy(hits.aggs));
+              }
+
+              // Get uuid and remove it before cache.
+              var uuid = hits.uuid;
+              delete hits.uuid;
+
+              // Save hits in cache (use uuid as it's it the cache id).
+              searchCache.put(uuid, hits);
+
+              deferred.resolve(hits);
             }
-
-            // Save hits in cache.
-            searchCache.put(cid, hits);
-
-            deferred.resolve(hits);
           });
 
           // Catch search errors.
-          socket.once('searchError', function (error) {
-            console.error('Search error', error.message);
-            deferred.reject(error.message);
-          });
+          socket.on('searchError', searchError);
+
+          // Send query.
+          socket.emit('search', query);
         });
       }
 
