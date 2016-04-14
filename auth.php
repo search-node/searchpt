@@ -54,4 +54,4 @@ function authenticate($host, $apiKey) {
 }
 
 header('Content-type: application/json');
-echo json_encode(authenticate('https://search.node.vm', '795359dd2c81fa41af67faa2f9adbd32'));
+echo json_encode(authenticate('https://search.node.vm', '2d72e44305d22db33c86400ce27486b1'));

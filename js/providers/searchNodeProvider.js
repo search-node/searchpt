@@ -22,6 +22,17 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       storageMode: 'localStorage'
     });
 
+    // Create auto-complete cache object.
+    var autoCacheExpire = 5;
+    if (configuration.hasOwnProperty("autocomplete")) {
+      autoCacheExpire = configuration.autocomplete.cacheExpire
+    }
+    var autoCompleteCache = new CacheFactory('autoCompleteCache' + CONFIG.id, {
+      maxAge: autoCacheExpire * 1000,
+      deleteOnExpire: 'aggressive',
+      storageMode: 'localStorage'
+    });
+
     // Holder for the latest search query filters.
     var currentFilters = {
       'taxonomy': undefined,
@@ -634,9 +645,9 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           /**
            * Search error handler for this event.
            */
-          var searchError = function searchError() {
-            console.error('Search error', error.message);
-            deferred.reject(error.message);
+          var searchError = function searchError(err) {
+            console.error('Search error', err.message);
+            deferred.reject(err.message);
           };
 
           // Listen to search results.
@@ -673,5 +684,82 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       return deferred.promise;
     };
+
+    /**
+     * Auto-complete search.
+     *
+     * @param str
+     *   The string the search should search for.
+     *
+     * @returns {promise.promise|Function|jQuery.promise|d.promise|*|promise}
+     */
+    this.autocomplete = function autocomplete(str) {
+      var deferred = $q.defer();
+
+      if (!configuration.hasOwnProperty("autocomplete")) {
+        var err = new Error('Auto complete not configured');
+        console.error('Search error', err.message);
+        deferred.reject(err.message);
+      }
+      else {
+        var query = {
+          "index": configuration.autocomplete.index,
+          "query": {
+            "match_phrase_prefix": {
+              "title": {
+                "query": str
+              }
+            }
+          },
+          "size": configuration.autocomplete.size
+        };
+
+        // Add uuid to this search query.
+        query.uuid = CryptoJS.MD5(JSON.stringify(query)).toString();
+
+        var hits = autoCompleteCache.get(query.uuid);
+        if (hits !== undefined) {
+          deferred.resolve(hits);
+        }
+        else {
+          // Connect to search node and execute the search.
+          connect().then(function () {
+            /**
+             * Search error handler for this event.
+             */
+            var searchError = function searchError(err) {
+              console.error('Search error', err.message);
+              deferred.reject(err.message);
+            };
+
+            // Listen to search results.
+            socket.on('result', function (hits) {
+              // Check if this socket message is for this query.
+              if (hits.uuid == query.uuid) {
+                socket.removeListener('result', this);
+                socket.removeListener('searchError', searchError);
+
+                // Get uuid and remove it before cache.
+                var uuid = hits.uuid;
+                delete hits.uuid;
+
+                // Save hit in cache.
+                autoCompleteCache.put(uuid, hits);
+
+                deferred.resolve(hits);
+              }
+            });
+
+            // Catch search errors.
+            socket.on('searchError', searchError);
+
+            // Send query.
+            socket.emit('search', query);
+          });
+        }
+      }
+
+      return deferred.promise;
+    }
   }
 ]);

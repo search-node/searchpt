@@ -324,6 +324,20 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
     };
 
     /**
+     * Send auto-complete request.
+     *
+     * Search on from the beginning of a field.
+     *
+     * @param str
+     *   The partial string to search for.
+     *
+     * @returns json
+     */
+    this.autocomplete = function autocomplete(str) {
+      return provider.autocomplete(str);
+    };
+
+    /**
      * Get filters provided by configuration.
      *
      * @returns json
