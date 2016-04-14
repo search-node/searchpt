@@ -13,6 +13,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      * Execute the search and emit the results.
      */
     function search() {
+      // Clear auto-complete.
+      $scope.autocompleteString = '';
+
       // Send info to results that a new search have started.
       communicatorService.$emit('searching', {});
 
