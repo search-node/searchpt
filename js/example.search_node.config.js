@@ -21,6 +21,12 @@ angular.module('searchAppConfig', [])
         'size': 8,
         'page': 0
       },
+      "autocomplete": {
+        "index": "bd6f534b05ab6073e04afef2c67e7e44",
+        "field": 'title',
+        "minChars": '3',
+        "size": 1
+      },
       'cacheExpire': 5,
       'sorting': {
         'field': 'title',

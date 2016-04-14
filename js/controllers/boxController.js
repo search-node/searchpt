@@ -13,6 +13,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      * Execute the search and emit the results.
      */
     function search() {
+      // Clear auto-complete.
+      $scope.autocompleteString = '';
+
       // Send info to results that a new search have started.
       communicatorService.$emit('searching', {});
 
@@ -151,6 +154,33 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       }
 
       search();
+    };
+
+    /**
+     * Auto-complete callback.
+     */
+    $scope.autocomplete = function autocomplete() {
+      if (CONFIG.provider.hasOwnProperty('autocomplete')) {
+        $scope.autocompleteString = '';
+        if ($scope.query.text.length >= CONFIG.provider.autocomplete.minChars) {
+          searchProxyService.autocomplete($scope.query.text).then(
+            function (data) {
+              if (data.hits) {
+                // Use regex to ensure cases (letters) are matched.
+                var re = new RegExp('^' + $scope.query.text, 'i');
+                var res = data.results[0][CONFIG.provider.autocomplete.field];
+                $scope.autocompleteString = res.replace(re, $scope.query.text);
+              }
+              else {
+                $scope.autocompleteString = '';
+              }
+            },
+            function (reason) {
+              console.error(reason);
+            }
+          );
+        }
+      }
     };
 
     // Get the show on the road.

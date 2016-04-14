@@ -6,7 +6,16 @@
 -->
 <div class="row collapse">
   <div class="small-10 columns">
-    <input type="text" placeholder="Søg, f.eks. musik, kursus" data-code="13" data-key-code="searchClicked()" data-ng-model="query.text">
+    <span style="position: relative;display: inline-block; width: 100%">
+      <!-- Hint (bg field) -->
+      <input data-ng-model="autocompleteString" spellcheck="false" autocomplete="off" readonly=""
+             style="position: absolute; top: 0px; left: 0px; border-color: transparent; box-shadow: none; opacity: 1; background: rgb(255, 255, 255) none repeat scroll 0% 0%;"
+             type="text">
+
+      <!-- Input field -->
+      <input style="position: relative; vertical-align: top; background-color: transparent;"
+             spellcheck="false" autocomplete="off" type="text" placeholder="Søg, f.eks. musik, kursus" data-code="13" data-key-code="searchClicked()" data-ng-model="query.text" data-ng-change='autocomplete()'>
+    </span>
   </div>
   <div class="small-2 columns">
     <div class="button postfix" data-ng-click="searchClicked()">Søg</div>
