@@ -3,8 +3,8 @@
  * Search provider for the search node framework.
  */
 
-angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http', 'CacheFactory', '$rootScope',
-  function (CONFIG, $q, $http, CacheFactory, $rootScope) {
+angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http', 'CacheFactory',
+  function (CONFIG, $q, $http, CacheFactory) {
     'use strict';
 
     // Configuration options.
@@ -646,7 +646,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           // Listen to search results.
           socket.on('result', function (hits) {
             // Check if this socket message is for this query.
-            if (hits.uuid == query.uuid) {
+            if (hits.uuid === query.uuid) {
               socket.removeListener('result', this);
               socket.removeListener('searchError', searchError);
 
@@ -728,7 +728,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             // Listen to search results.
             socket.on('result', function (hits) {
               // Check if this socket message is for this query.
-              if (hits.uuid == query.uuid) {
+              if (hits.uuid === query.uuid) {
                 socket.removeListener('result', this);
                 socket.removeListener('searchError', searchError);
 
@@ -753,6 +753,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       }
 
       return deferred.promise;
-    }
+    };
   }
 ]);

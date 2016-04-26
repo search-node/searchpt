@@ -20,7 +20,7 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
      *
      */
     $rootScope.$watch(function () {
-      return $location.hash()
+      return $location.hash();
     }, function (newHash, oldHash) {
       if($rootScope.actualHash === newHash) {
         // @TODO: Figure out why promises stop working when the back/forward
