@@ -5,9 +5,65 @@
  * It controls the search box and filters.
  */
 
-angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communicatorService', 'searchProxyService', '$scope',
-  function (CONFIG, communicatorService, searchProxyService, $scope) {
+angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communicatorService', 'searchProxyService', '$scope', '$location', '$rootScope', '$window',
+  function (CONFIG, communicatorService, searchProxyService, $scope, $location, $rootScope, $window) {
     'use strict';
+
+    /**
+     * Listen to location change event to handle (back/forward button).
+     */
+    $rootScope.$on('$locationChangeSuccess', function(newLocation, oldLocation) {
+      $rootScope.actualHash = $location.hash();
+    });
+
+    /**
+     *
+     */
+    $rootScope.$watch(function () {
+      return $location.hash()
+    }, function (newHash, oldHash) {
+      if($rootScope.actualHash === newHash) {
+        // @TODO: Figure out why promises stop working when the back/forward
+        // buttons in the browser have been user. This is a HACK and hence the
+        // code below is dead until we find a solution to promises.
+        $window.location.reload();
+
+        //// Get state from previous search.
+        //var state = searchProxyService.getState();
+        //
+        //// Get filters.
+        //$scope.filters = state.filters;
+        //
+        //// Set template to use.
+        //$scope.template = CONFIG.templates.box;
+        //
+        //// Init the query object.
+        //$scope.query = {
+        //  'text': '',
+        //  'filters': {}
+        //};
+        //
+        //// Check if any intervals have been configured.
+        //if (CONFIG.provider.hasOwnProperty('intervals')) {
+        //  $scope.intervals = CONFIG.provider.intervals;
+        //  $scope.query.intervals = {};
+        //}
+        //
+        //// Check if any dates have been configured.
+        //if (CONFIG.provider.hasOwnProperty('dates')) {
+        //  $scope.dates = CONFIG.provider.dates;
+        //  $scope.query.dates = {};
+        //}
+        //
+        //// Check if any search query have been located from the hash tag.
+        //if (state.hasOwnProperty('query')) {
+        //  // Query found in state, so execute that search.
+        //  $scope.query = state.query;
+        //}
+        //
+        //search();
+      }
+    });
 
     /**
      * Execute the search and emit the results.

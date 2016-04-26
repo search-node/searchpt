@@ -3,8 +3,8 @@
  * Search provider for the search node framework.
  */
 
-angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http', 'CacheFactory',
-  function (CONFIG, $q, $http, CacheFactory) {
+angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$http', 'CacheFactory', '$rootScope',
+  function (CONFIG, $q, $http, CacheFactory, $rootScope) {
     'use strict';
 
     // Configuration options.
@@ -16,22 +16,14 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
     var token = null;
 
     // Create cache object.
-    var searchCache = new CacheFactory('searchCache' + CONFIG.id, {
-      maxAge: configuration.cacheExpire * 1000,
-      deleteOnExpire: 'aggressive',
-      storageMode: 'localStorage'
-    });
-
-    // Create auto-complete cache object.
-    var autoCacheExpire = 5;
-    if (configuration.hasOwnProperty("autocomplete")) {
-      autoCacheExpire = configuration.autocomplete.cacheExpire
+    if (!CacheFactory.get('searchCache')) {
+      CacheFactory.createCache('searchCache' + CONFIG.id, {
+        maxAge: configuration.cacheExpire * 1000,
+        deleteOnExpire: 'aggressive',
+        storageMode: 'localStorage'
+      });
     }
-    var autoCompleteCache = new CacheFactory('autoCompleteCache' + CONFIG.id, {
-      maxAge: autoCacheExpire * 1000,
-      deleteOnExpire: 'aggressive',
-      storageMode: 'localStorage'
-    });
+    var searchCache = CacheFactory.get('searchCache' + CONFIG.id);
 
     // Holder for the latest search query filters.
     var currentFilters = {
@@ -425,8 +417,6 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      * @returns {*}
      */
     this.search = function search(searchQuery) {
-      var deferred = $q.defer();
-
       // Build default "match all" search query.
       var query = {
         "index": configuration.index,
@@ -631,12 +621,15 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       // Check cache for hits.
       var hits = searchCache.get(cid);
+
+      // Create promise for the search query.
+      var deferred = $q.defer();
+
       if (hits !== undefined) {
         // Update filters cache.
         if (hits.hasOwnProperty('aggs')) {
           currentFilters = parseFilters(angular.copy(hits.aggs));
         }
-
         deferred.resolve(hits);
       }
       else {
@@ -717,7 +710,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         // Add uuid to this search query.
         query.uuid = CryptoJS.MD5(JSON.stringify(query)).toString();
 
-        var hits = autoCompleteCache.get(query.uuid);
+        var hits = searchCache.get(query.uuid);
         if (hits !== undefined) {
           deferred.resolve(hits);
         }
@@ -744,7 +737,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
                 delete hits.uuid;
 
                 // Save hit in cache.
-                autoCompleteCache.put(uuid, hits);
+                searchCache.put(uuid, hits);
 
                 deferred.resolve(hits);
               }
