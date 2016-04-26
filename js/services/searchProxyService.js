@@ -9,8 +9,9 @@
 /**
  * Search proxy is used to send search requests to the configured provider.
  */
-angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communicatorService', '$injector',
-  function (CONFIG, communicatorService, $injector) {
+
+angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communicatorService', '$injector', '$location',
+  function (CONFIG, communicatorService, $injector, $location) {
     'use strict';
 
     // Load provider based on configuration.
@@ -129,7 +130,7 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
       var query = {};
 
       // Get parts.
-      var parts = string.substr(2).split('&');
+      var parts = string.split('&');
       for (var part in parts) {
         // Decode the type identifier.
         var subParts = parts[part].split('=');
@@ -236,7 +237,7 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
         'filters': this.getRawFilters()
       };
 
-      var hash = window.location.hash;
+      var hash = $location.hash();
       if (hash.length > 2) {
          state.query = decodeSearchQuery(hash);
       }
@@ -288,7 +289,8 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
 
       // Keep track of the current URL.
       if (!byPassUrlEncode) {
-        window.location.hash = encodeSearchQuery(query);
+        $location.path('/');
+        $location.hash(encodeSearchQuery(query));
       }
 
       // Force search filters form configuration (predefined filters).
