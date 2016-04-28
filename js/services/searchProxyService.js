@@ -340,6 +340,18 @@ angular.module('searchBoxApp').service('searchProxyService', ['CONFIG', 'communi
     };
 
     /**
+     * Send raw search query request.
+     *
+     * @param query
+     *   The search query.
+     *
+     * @returns json
+     */
+    this.rawQuerySearch = function rawQuerySearch(query) {
+      return provider.rawQuerySearch(query);
+    };
+
+    /**
      * Get filters provided by configuration.
      *
      * @returns json
