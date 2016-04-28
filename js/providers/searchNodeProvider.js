@@ -447,6 +447,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         query.query.filtered.query = {
           "multi_match": {
             "query": searchQuery.text,
+            "type": configuration.hasOwnProperty('match_type') ? configuration.match_type : 'best:fields',
             "fields": fields,
             "analyzer": 'string_search'
           }
@@ -754,5 +755,82 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
       return deferred.promise;
     };
+
+    /**
+     * Send query directly to search node.
+     *
+     * Sends the raw query given in the parameter to search node and
+     * elasticearch.
+     *
+     *  Basically elasticsearch query as the on below extended with the index
+     *  to use.
+     *
+     *  {
+     *    "index": 'bd6f534b05ab6073e04afef2c67e7e44',
+     *    "query": {
+     *       "match_phrase_prefix": {
+     *         "title": {
+     *           "query": 'test string'
+     *         }
+     *       }
+     *     },
+     *    "size": 10
+     *  }
+     *
+     * @param query
+     *   JSON search query.
+     *
+     * @returns {*|promise.promise|Function|jQuery.promise|d.promise|promise}
+     */
+    this.rawQuerySearch = function rawQuerySearch(query) {
+      var deferred = $q.defer();
+
+      // Add uuid to this search query.
+      query.uuid = CryptoJS.MD5(JSON.stringify(query)).toString();
+
+      var hits = searchCache.get(query.uuid);
+      if (hits !== undefined) {
+        deferred.resolve(hits);
+      }
+      else {
+        // Connect to search node and execute the search.
+        connect().then(function () {
+          /**
+           * Search error handler for this event.
+           */
+          var searchError = function searchError(err) {
+            console.error('Search error', err.message);
+            deferred.reject(err.message);
+          };
+
+          // Listen to search results.
+          socket.on('result', function (hits) {
+            // Check if this socket message is for this query.
+            if (hits.uuid === query.uuid) {
+              socket.removeListener('result', this);
+              socket.removeListener('searchError', searchError);
+
+              // Get uuid and remove it before cache.
+              var uuid = hits.uuid;
+              delete hits.uuid;
+
+              // Save hit in cache.
+              searchCache.put(uuid, hits);
+
+              deferred.resolve(hits);
+            }
+          });
+
+          // Catch search errors.
+          socket.on('searchError', searchError);
+
+          // Send query.
+          socket.emit('search', query);
+        });
+      }
+
+      return deferred.promise;
+    };
+
   }
 ]);
