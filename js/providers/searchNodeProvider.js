@@ -614,14 +614,18 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         }
       }
 
-      // Create cache key based on the finale search query.
-      var cid = CryptoJS.MD5(JSON.stringify(query)).toString();
-
-      // Give unique id to the search query.
-      query.uuid = cid;
+      // Use an MD5 hash to make a unique callback/message in the socket
+      // connection. This is needed to ensure that more that one search query
+      // can be fired into the connection a the right response ends up with
+      // the component that send the request.
+      query.uuid = CryptoJS.MD5(JSON.stringify(query)).toString();
+      query.callbacks = {
+        'hits': 'hits-' + query.uuid,
+        'error': 'error-' + query.uuid
+      };
 
       // Check cache for hits.
-      var hits = searchCache.get(cid);
+      var hits = searchCache.get(query.uuid);
 
       // Create promise for the search query.
       var deferred = $q.defer();
@@ -635,41 +639,29 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       }
       else {
         connect().then(function () {
-
-          /**
-           * Search error handler for this event.
-           */
-          var searchError = function searchError(err) {
-            console.error('Search error', err.message);
-            deferred.reject(err.message);
-          };
-
           // Listen to search results.
-          socket.on('result', function (hits) {
-            // Check if this socket message is for this query.
-            if (hits.uuid === query.uuid) {
-              socket.removeListener('result', this);
-              socket.removeListener('searchError', searchError);
-
-              // Update cache filters cache, based on the current search result.
-              if (hits.hasOwnProperty('aggs')) {
-                // Store current filters.
-                currentFilters = parseFilters(angular.copy(hits.aggs));
-              }
-
-              // Get uuid and remove it before cache.
-              var uuid = hits.uuid;
-              delete hits.uuid;
-
-              // Save hits in cache (use uuid as it's it the cache id).
-              searchCache.put(uuid, hits);
-
-              deferred.resolve(hits);
+          socket.once(query.callbacks['hits'], function (hits) {
+            // Update cache filters cache, based on the current search result.
+            if (hits.hasOwnProperty('aggs')) {
+              // Store current filters.
+              currentFilters = parseFilters(angular.copy(hits.aggs));
             }
+
+            // Get uuid and remove it before cache.
+            var uuid = hits.uuid;
+            delete hits.uuid;
+
+            // Save hits in cache (use uuid as it's it the cache id).
+            searchCache.put(uuid, hits);
+
+            deferred.resolve(hits);
           });
 
           // Catch search errors.
-          socket.on('searchError', searchError);
+          socket.once(query.callbacks['error'], function searchError(err) {
+            console.error('Search error', err.message);
+            deferred.reject(err.message);
+          });
 
           // Send query.
           socket.emit('search', query);
@@ -708,8 +700,15 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           "size": configuration.autocomplete.size
         };
 
-        // Add uuid to this search query.
+        // Use an MD5 hash to make a unique callback/message in the socket
+        // connection. This is needed to ensure that more that one search query
+        // can be fired into the connection a the right response ends up with
+        // the component that send the request.
         query.uuid = CryptoJS.MD5(JSON.stringify(query)).toString();
+        query.callbacks = {
+          'hits': 'hits-' + query.uuid,
+          'error': 'error-' + query.uuid
+        };
 
         var hits = searchCache.get(query.uuid);
         if (hits !== undefined) {
@@ -718,34 +717,23 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         else {
           // Connect to search node and execute the search.
           connect().then(function () {
-            /**
-             * Search error handler for this event.
-             */
-            var searchError = function searchError(err) {
-              console.error('Search error', err.message);
-              deferred.reject(err.message);
-            };
-
             // Listen to search results.
-            socket.on('result', function (hits) {
-              // Check if this socket message is for this query.
-              if (hits.uuid === query.uuid) {
-                socket.removeListener('result', this);
-                socket.removeListener('searchError', searchError);
+            socket.once(query.callbacks['hits'], function (hits) {
+              // Get uuid and remove it before cache.
+              var uuid = hits.uuid;
+              delete hits.uuid;
 
-                // Get uuid and remove it before cache.
-                var uuid = hits.uuid;
-                delete hits.uuid;
+              // Save hit in cache.
+              searchCache.put(uuid, hits);
 
-                // Save hit in cache.
-                searchCache.put(uuid, hits);
-
-                deferred.resolve(hits);
-              }
+              deferred.resolve(hits);
             });
 
             // Catch search errors.
-            socket.on('searchError', searchError);
+            socket.once(query.callbacks['error'], function searchError(error) {
+              console.error('Auto-complete error', error.message);
+              deferred.reject(error.message);
+            });
 
             // Send query.
             socket.emit('search', query);
@@ -777,16 +765,26 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
      *    "size": 10
      *  }
      *
-     * @param query
-     *   JSON search query.
+     * @param rawSearchQuery
+     *   JSON search query object.
      *
      * @returns {*|promise.promise|Function|jQuery.promise|d.promise|promise}
      */
-    this.rawQuerySearch = function rawQuerySearch(query) {
+    this.rawQuerySearch = function rawQuerySearch(rawSearchQuery) {
       var deferred = $q.defer();
 
-      // Add uuid to this search query.
+      // Ensure that we have a local copy of the object.
+      var query = angular.clone(rawSearchQuery);
+
+      // Use an MD5 hash to make a unique callback/message in the socket
+      // connection. This is needed to ensure that more that one search query
+      // can be fired into the connection a the right response ends up with
+      // the component that send the request.
       query.uuid = CryptoJS.MD5(JSON.stringify(query)).toString();
+      query.callbacks = {
+        'hits': 'hits-' + query.uuid,
+        'error': 'error-' + query.uuid
+      };
 
       var hits = searchCache.get(query.uuid);
       if (hits !== undefined) {
@@ -795,34 +793,23 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       else {
         // Connect to search node and execute the search.
         connect().then(function () {
-          /**
-           * Search error handler for this event.
-           */
-          var searchError = function searchError(err) {
-            console.error('Search error', err.message);
-            deferred.reject(err.message);
-          };
-
           // Listen to search results.
-          socket.on('result', function (hits) {
-            // Check if this socket message is for this query.
-            if (hits.uuid === query.uuid) {
-              socket.removeListener('result', this);
-              socket.removeListener('searchError', searchError);
+          socket.once(query.callbacks['hits'], function (hits) {
+            // Get uuid and remove it before cache.
+            var uuid = hits.uuid;
+            delete hits.uuid;
 
-              // Get uuid and remove it before cache.
-              var uuid = hits.uuid;
-              delete hits.uuid;
+            // Save hit in cache.
+            searchCache.put(uuid, hits);
 
-              // Save hit in cache.
-              searchCache.put(uuid, hits);
-
-              deferred.resolve(hits);
-            }
+            deferred.resolve(hits);
           });
 
           // Catch search errors.
-          socket.on('searchError', searchError);
+          socket.once(query.callbacks['error'], function searchError(err) {
+            console.error('Search error', err.message);
+            deferred.reject(err.message);
+          });
 
           // Send query.
           socket.emit('search', query);
