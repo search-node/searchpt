@@ -774,7 +774,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
       var deferred = $q.defer();
 
       // Ensure that we have a local copy of the object.
-      var query = angular.clone(rawSearchQuery);
+      var query = angular.copy(rawSearchQuery);
 
       // Use an MD5 hash to make a unique callback/message in the socket
       // connection. This is needed to ensure that more that one search query
