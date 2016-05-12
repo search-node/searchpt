@@ -5,8 +5,6 @@
 
 /**
  * Paging directive.
- *
- * @TODO: Review - maybe use the newer version from https://github.com/aroskanalen/admin/tree/development/web/app/shared/elements/pager
  */
 angular.module('searchResultApp').directive('searchPager', ['CONFIG',
   function (CONFIG) {
