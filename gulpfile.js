@@ -79,11 +79,9 @@ gulp.task('js-watch', function() {
  */
 gulp.task('appJs', function () {
   gulp.src(jsPath)
-    .pipe(sourcemaps.init())
-      .pipe(concat('search.js'))
-      .pipe(ngAnnotate())
-      .pipe(gulpif(argv.production, uglify()))
-    .pipe(sourcemaps.write('/maps'))
+    .pipe(concat('search.js'))
+    .pipe(ngAnnotate())
+    .pipe(gulpif(argv.production, uglify()))
     .pipe(rename({extname: ".min.js"}))
     .pipe(header(banner, { pkg : pkg } ))
     .pipe(gulp.dest(buildDir))
