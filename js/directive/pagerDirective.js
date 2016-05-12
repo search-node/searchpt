@@ -28,20 +28,6 @@ angular.module('searchResultApp').directive('searchPager', ['CONFIG',
           $scope.search();
         };
 
-        $scope.prevPage = function prevPage() {
-          if ($scope.pager.page > 0) {
-            $scope.pager.page--;
-            $scope.search();
-          }
-        };
-
-        $scope.nextPage = function nextPage() {
-          if ($scope.pager.page < $scope.pager.max - 1) {
-            $scope.pager.page++;
-            $scope.search();
-          }
-        };
-
         // Keep a watch on changes in number of hits.
         $scope.$watch('hits', function (hits) {
           var pages = [];
