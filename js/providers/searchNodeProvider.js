@@ -621,7 +621,7 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
           "post_tags" : [ "</strong>" ],
           "fields": {
           }
-        }
+        };
         for (var i in configuration.highlight.fields) {
           query.highlight.fields[configuration.highlight.fields[i]] = {};
         }
