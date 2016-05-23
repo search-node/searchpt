@@ -447,7 +447,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         query.query.filtered.query = {
           "multi_match": {
             "query": searchQuery.text,
-            "type": configuration.hasOwnProperty('match_type') ? configuration.match_type : 'best:fields',
+            "type": configuration.hasOwnProperty('match_type') ? configuration.match_type : ' best_fields',
+            "operator": configuration.hasOwnProperty('match_operator') ? configuration.match_operator : 'or',
             "fields": fields,
             "analyzer": 'string_search'
           }
