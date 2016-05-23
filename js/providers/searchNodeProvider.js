@@ -615,6 +615,18 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
         }
       }
 
+      if (configuration.hasOwnProperty('highlight')) {
+        query.highlight = {
+          "pre_tags" : [ "<strong>" ],
+          "post_tags" : [ "</strong>" ],
+          "fields": {
+          }
+        }
+        for (var i in configuration.highlight.fields) {
+          query.highlight.fields[configuration.highlight.fields[i]] = {};
+        }
+      }
+
       // Use an MD5 hash to make a unique callback/message in the socket
       // connection. This is needed to ensure that more that one search query
       // can be fired into the connection a the right response ends up with

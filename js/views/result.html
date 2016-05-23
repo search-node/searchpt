@@ -9,7 +9,7 @@
     <hr>
     <h3>Search results <span data-ng-if="hits.hits > 0">({{ hits.hits }})</span></h3>
     <article data-ng-repeat="hit in hits.results">
-      <p>Title: {{ hit.title }}</p>
+      <p data-ng-bind-html="hit._highlight.title[0]"></p>
       <p>Score: {{ hit._score }}</p>
       <p data-ng-bind-html="hit['body:value']"></p>
       <p><strong>Level: </strong><span data-ng-repeat="level in hit.field_level track by $index">{{ level }} </span></p>
