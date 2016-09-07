@@ -84,7 +84,7 @@ gulp.task('appJs', function () {
       .pipe(ngAnnotate())
       .pipe(gulpif(argv.production, uglify()))
     .pipe(sourcemaps.write('/maps'))
-    .pipe(rename({extname: ".min.js"}))
+    .pipe(gulpif(argv.production, rename({extname: ".min.js"})))
     .pipe(header(banner, { pkg : pkg } ))
     .pipe(gulp.dest(buildDir))
 });
@@ -95,7 +95,7 @@ gulp.task('appJs', function () {
 gulp.task('assetsJs', function () {
   gulp.src(jsAssets)
     .pipe(concat('assets.js'))
-    .pipe(rename({extname: ".min.js"}))
+    .pipe(gulpif(argv.production, rename({extname: ".min.js"})))
     .pipe(gulp.dest(buildDir))
 });
 
