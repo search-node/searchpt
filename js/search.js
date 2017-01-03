@@ -5,7 +5,7 @@
  */
 
 // Define the angular applications.
-angular.module('searchBoxApp', ['communicationService', 'searchAppConfig', 'angular-cache']);
+angular.module('searchBoxApp', ['communicationService', 'searchAppConfig', 'angular-cache', 'ngSanitize']);
 angular.module('searchResultApp', ['communicationService', 'searchAppConfig', 'ngSanitize', 'bw.paging']);
 
 /**

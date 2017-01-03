@@ -37,11 +37,20 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
       var phase = this.$root.$$phase;
       if (phase === '$apply' || phase === '$digest') {
         $scope.hits = data.hits;
+        if (data.hasOwnProperty('pager')) {
+          $scope.pager = data.pager;
+        }
+
         $scope.searching = false;
       }
       else {
         $scope.$apply(function () {
           $scope.hits = data.hits;
+          if (data.hasOwnProperty('pager')) {
+            $scope.pager = data.pager;
+
+          }
+
           $scope.searching = false;
         });
       }

@@ -28,7 +28,7 @@ var banner = ['/**',
 var jsPath = ['./js/search.js', './js/*/*.js', '!./js/assets/*'];
 var jsAssets = ['./js/assets/*.min.js', '!./js/assets/angular.js', '!./js/assets/angular.min.js'];
 var sassPath = './scss/*.scss';
-var jsonPath = [ './version.json' ]
+var jsonPath = [ './version.json' ];
 
 var buildDir = './build';
 
@@ -79,10 +79,12 @@ gulp.task('js-watch', function() {
  */
 gulp.task('appJs', function () {
   gulp.src(jsPath)
-    .pipe(concat('search.js'))
-    .pipe(ngAnnotate())
-    .pipe(gulpif(argv.production, uglify()))
-    .pipe(rename({extname: ".min.js"}))
+    .pipe(sourcemaps.init())
+      .pipe(concat('search.js'))
+      .pipe(ngAnnotate())
+      .pipe(gulpif(argv.production, uglify()))
+    .pipe(sourcemaps.write('/maps'))
+    .pipe(gulpif(argv.production, rename({extname: ".min.js"})))
     .pipe(header(banner, { pkg : pkg } ))
     .pipe(gulp.dest(buildDir))
 });
@@ -93,7 +95,7 @@ gulp.task('appJs', function () {
 gulp.task('assetsJs', function () {
   gulp.src(jsAssets)
     .pipe(concat('assets.js'))
-    .pipe(rename({extname: ".min.js"}))
+    .pipe(gulpif(argv.production, rename({extname: ".min.js"})))
     .pipe(gulp.dest(buildDir))
 });
 
