@@ -97,7 +97,16 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           );
 
           // Send results.
-          communicatorService.$emit('hits', {"hits": data});
+          var res = {
+            "hits": data
+          };
+
+          // Add pager info to the results.
+          if (CONFIG.provider.hasOwnProperty('pager')) {
+            res.pager = $scope.query.pager
+          }
+
+          communicatorService.$emit('hits', res);
         },
         function (reason) {
           console.error(reason);
