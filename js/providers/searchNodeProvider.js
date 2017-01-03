@@ -329,7 +329,8 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
             // Set basic filter with counts.
             result.taxonomy[filter.field] = {
               'name': filter.name,
-              'items': filter.terms
+              'items': filter.terms,
+              'type': filter.type
             };
           }
         }
@@ -478,14 +479,19 @@ angular.module('searchBoxApp').service('searchNodeProvider', ['CONFIG', '$q', '$
 
         // Loop over taxonomy filters.
         if (filters.hasOwnProperty('taxonomy')) {
+          var filterConfig = this.getRawFilters();
           for (var field in filters.taxonomy) {
             var filter = filters.taxonomy[field];
-            /**
-             * @TODO: Needs to get information from configuration about execution
-             *        type?
-             */
+
+            // Use filter configuration to determine if these terms should be
+            // "and" or "or" filtered. Defaults to "and" if no config is found.
+            var type = 'and';
+            if (filterConfig.taxonomy.hasOwnProperty(field) && filterConfig.taxonomy[field].hasOwnProperty('type')) {
+              type = filterConfig.taxonomy[field].type;
+            }
+
             var terms = {
-              "execution": "and"
+              "execution": type
             };
 
             terms[field + '.raw'] = [];
