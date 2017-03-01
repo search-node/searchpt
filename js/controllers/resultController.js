@@ -26,6 +26,10 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
      * Update pager information.
      */
     $scope.search = function search() {
+      // Fix pager that is not zero indexed.
+      var pager = angular.copy($scope.pager);
+      pager.page--;
+
       communicatorService.$emit('pager', $scope.pager);
     };
 
@@ -39,6 +43,9 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
         $scope.hits = data.hits;
         if (data.hasOwnProperty('pager')) {
           $scope.pager = data.pager;
+
+          // Fix pager that is not zero indexed.
+          $scope.pager.page++;
         }
 
         $scope.searching = false;
@@ -49,6 +56,8 @@ angular.module('searchResultApp').controller('resultController', ['CONFIG', 'com
           if (data.hasOwnProperty('pager')) {
             $scope.pager = data.pager;
 
+            // Fix pager that is not zero indexed.
+            $scope.pager.page++;
           }
 
           $scope.searching = false;
