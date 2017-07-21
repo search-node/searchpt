@@ -283,6 +283,24 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       }
     };
 
+    /**
+     * Remove filter from the current query.
+     *
+     * @param field
+     *   The field/filter to remove the filter from.
+     * @param filter
+     *   The filter word its self.
+     */
+    $scope.removeFilter = function removeFilter(field, filter) {
+      if ($scope.query.filters.taxonomy[field].hasOwnProperty(filter)) {
+        // Remove the filter for current query.
+        delete $scope.query.filters.taxonomy[field][filter];
+
+        // Update search.
+        search();
+      }
+    };
+
     // Get the show on the road.
     init();
   }
