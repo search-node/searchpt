@@ -301,6 +301,25 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
       }
     };
 
+    /**
+     * Reset the current sorting to default.
+     */
+    $scope.resetSorting = function resetSorting() {
+      $scope.query.sort = {};
+      search();
+    };
+
+    /**
+     * Set sorting based on field.
+     * @param field
+     * @param sorting
+     */
+    $scope.selectSorting = function(field, sorting) {
+      $scope.query.sort = {};
+      $scope.query.sort[field] = sorting;
+      search();
+    };
+
     // Get the show on the road.
     init();
   }
