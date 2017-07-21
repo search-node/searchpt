@@ -66,6 +66,32 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     });
 
     /**
+     * Find the currently select filters/facets.
+     *
+     * @param filters
+     *   The selected filters return from search.
+     *
+     * @returns {{}}
+     *   The filter with correct names indexed by field name.
+     */
+    function getSelectedFilters(filters) {
+      if (filters.hasOwnProperty('taxonomy')) {
+        var taxonomies = filters.taxonomy;
+        var selectedFilters = {};
+        for (var field in taxonomies) {
+          selectedFilters[field] = [];
+          for (var key in taxonomies[field]) {
+            if (taxonomies[field][key]) {
+              selectedFilters[field].push(key);
+            }
+          }
+        }
+      }
+
+      return selectedFilters;
+    }
+
+    /**
      * Execute the search and emit the results.
      */
     function search() {
@@ -95,6 +121,12 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
               console.error(reason);
             }
           );
+
+          // Updated selected filters base on search query.
+          if ($scope.query.hasOwnProperty('filters')) {
+            var filters = angular.copy($scope.query.filters);
+            $scope.selectedFilters = getSelectedFilters(filters);
+          }
 
           // Send results.
           var res = {
@@ -132,6 +164,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         'text': '',
         'filters': {}
       };
+
+      // Init selected filters.
+      $scope.selectedFilters = {};
 
       // Check if any intervals have been configured.
       if (CONFIG.provider.hasOwnProperty('intervals')) {
