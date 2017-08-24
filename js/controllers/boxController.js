@@ -66,6 +66,32 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
     });
 
     /**
+     * Find the currently select filters/facets.
+     *
+     * @param filters
+     *   The selected filters return from search.
+     *
+     * @returns {{}}
+     *   The filter with correct names indexed by field name.
+     */
+    function getSelectedFilters(filters) {
+      if (filters.hasOwnProperty('taxonomy')) {
+        var taxonomies = filters.taxonomy;
+        var selectedFilters = {};
+        for (var field in taxonomies) {
+          selectedFilters[field] = [];
+          for (var key in taxonomies[field]) {
+            if (taxonomies[field][key]) {
+              selectedFilters[field].push(key);
+            }
+          }
+        }
+      }
+
+      return selectedFilters;
+    }
+
+    /**
      * Execute the search and emit the results.
      */
     function search() {
@@ -95,6 +121,12 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
               console.error(reason);
             }
           );
+
+          // Updated selected filters base on search query.
+          if ($scope.query.hasOwnProperty('filters')) {
+            var filters = angular.copy($scope.query.filters);
+            $scope.selectedFilters = getSelectedFilters(filters);
+          }
 
           // Send results.
           var res = {
@@ -132,6 +164,9 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
         'text': '',
         'filters': {}
       };
+
+      // Init selected filters.
+      $scope.selectedFilters = {};
 
       // Check if any intervals have been configured.
       if (CONFIG.provider.hasOwnProperty('intervals')) {
@@ -246,6 +281,83 @@ angular.module('searchBoxApp').controller('boxController', ['CONFIG', 'communica
           );
         }
       }
+    };
+
+    /**
+     * Remove filter from the current query.
+     *
+     * @param field
+     *   The field/filter to remove the filter from.
+     * @param filter
+     *   The filter word its self.
+     */
+    $scope.removeFilter = function removeFilter(field, filter) {
+      if ($scope.query.filters.taxonomy[field].hasOwnProperty(filter)) {
+        // Remove the filter for current query.
+        delete $scope.query.filters.taxonomy[field][filter];
+
+        // Update search.
+        search();
+      }
+    };
+
+    /**
+     * Resets the current search to default.
+     */
+    $scope.reset = function reset() {
+      // Reset filters
+      $scope.query.filters = {};
+      $scope.selectedFilters = {};
+
+      // Text.
+      $scope.query.text = '';
+
+      // Reset intervals.
+      if (CONFIG.provider.hasOwnProperty('intervals')) {
+        $scope.query.intervals = {};
+      }
+
+      if (CONFIG.provider.hasOwnProperty('dates')) {
+        $scope.query.dates = {};
+      }
+
+      // Reset pager.
+      if (CONFIG.provider.hasOwnProperty('pager')) {
+        $scope.query.pager = angular.copy(CONFIG.provider.pager);
+      }
+
+      // Check if initail query exists.
+      if (CONFIG.hasOwnProperty('initialQueryText')) {
+        $scope.query.text = angular.copy(CONFIG.initialQueryText);
+
+        search();
+      }
+      else {
+        // No initial query.
+        $scope.query.query = '';
+
+        // Remove hits.
+        communicatorService.$emit('hits', {"hits" : {}});
+      }
+    };
+
+    /**
+     * Reset the current sorting to default.
+     */
+    $scope.resetSorting = function resetSorting() {
+      $scope.query.sort = {};
+      search();
+    };
+
+    /**
+     * Set sorting based on field.
+     * @param field
+     * @param sorting
+     */
+    $scope.selectSorting = function(field, sorting) {
+      $scope.query.sort = {};
+      $scope.query.sort[field] = sorting;
+      search();
     };
 
     // Get the show on the road.
